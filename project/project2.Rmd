@@ -1,8 +1,538 @@
 ---
-title: "Project 2"
-author: "Me"
-date: "2020-12-01"
-output: html_document
+title: 'Project 2: Modeling, Testing, and Predicting'
+author: "Yiheng Su"
+date: '11/18/20'
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
 ---
 
-## Test Project 2
+```{r setup, include=FALSE}
+library(knitr)
+# hook_output = knit_hooks$get('output')
+# knit_hooks$set(output = function(x, options) {
+#   # this hook is used only when the linewidth option is not NULL
+#   if (!is.null(n <- options$linewidth)) {
+#     x = knitr:::split_lines(x)
+#     # any lines wider than n should be wrapped
+#     if (any(nchar(x) > n)) x = strwrap(x, width = n)
+#     x = paste(x, collapse = '\n')
+#   }
+#   hook_output(x, options)
+# })
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE,fig.align="center",warning=FALSE,message=FALSE,fig.width=8, fig.height=5, linewidth=60)
+options(tibble.width = 100,width = 100)
+library(tidyverse)
+set.seed(777)
+```
+
+### Introduction and Motivation
+
+Anyone who has worked in the industry has been in the following scenario: you work hard to be promoted for X position, while in the end some competitor Y gets promoted to the position instead. You feel annoyed; you feel that it’s unfair! Y is clearly way less suitable than you are for this position! Y must have cheated or hitched a deal with the boss!  
+Well, is that really the case? Let’s try to analyze the factors that may have contributed to Y’s promotion via statistics, the one thing we know we are best at. The dataset will come from kaggle (https://www.kaggle.com/shivan118/hranalysis), in which we have 14 total variables, one of them being a binary response variable is_promoted that we wish to explain using the other 13 predictors. The kaggle sites provides separate Train and Test splits, but the test split sadly does not contain the binary response variable that we are interested in predicting (probably intentional for compiling predictions) and so will be omitted since there are plenty of observations in the training data set for CV.  
+
+There are 54397 observations in the data, and 48,306 observations after omitting all rows with NAs and/or missing data. The 14 variables are as below and their levels from the R output:
+
+* employee_id: an unique ID associated with each employee; not useful in model building and will be omitted
+* department: what department (ie. Marketing) does employee work in? Categorical with 9 Levels
+* region: what region (ie. 22) does employee work in? Categorical with 34 Levels
+* education: what level of education (ie. Master's & above) does this employee have? Categorical with 4 levels
+* gender: Male or Female
+* recruitment_channel: how was this employee recruited? (ie. sourcing) Categorical with 3 levels
+* no_of_trainings: how many trainings did this employee receive? numeric, [0-10]
+* age: age in years; numeric
+* previous_year_rating: how good was this employee's performace last year? numeric, [1-5]
+* length_of_service: how long has this employee worked (in years)? numeric
+* KPIs_met >80%: is this employee's Key Performance Indicators above the 80% threshold? Boolean, 0 or 1
+* awards_won?: how many awards has this employee won? Boolean, 0 or 1
+* avg_training_score: an integer measurement of this employee's training evaluations, numeric, [0-100]
+* is_promoted: was this employee promoted? Boolean, 0 or 1
+
+Note: the analysis was conducted with 
+seed = 777 to maintain consistency between descriptions and statistics calculated
+
+```{r}
+train <- read.csv("train.csv")
+
+# inital peek
+train %>% glimpse()
+
+# omit nas (and some missing education rows), coerce variables as a factor, rename some columns, and finally drop employee_IDs
+train <- train %>% na.omit() %>% 
+  filter(education != "") %>% 
+  mutate(education = factor(education, 
+                            levels = c("Bachelor's", "Below Secondary", "Master's & above"))) %>% 
+  mutate(KPIs_met..80. = as.factor(KPIs_met..80.)) %>% 
+  rename(KPIs_met = KPIs_met..80.) %>% 
+  mutate(awards_won. = as.factor(awards_won.)) %>% 
+  rename(awards_won = awards_won.) %>% 
+  mutate(is_promoted = as.factor(is_promoted)) %>% 
+  select(-employee_id)
+
+# final peek
+train %>% glimpse()
+```
+
+```{r}
+train %>% summarize_if(is.factor, n_distinct)
+```
+
+### MANOVA and Post-Hoc Testing
+
+Null: For all our numeric variables (no_of_trainings, age, length_of_service, avg_training_score), means for each education level is equal
+
+Alternative: For at least one of our numeric variables, at least one education level (Master's & above, Bachelor's, Below Secondary) mean is different
+
+```{r}
+manova_fit <- manova(cbind(previous_year_rating, no_of_trainings, age, length_of_service, avg_training_score)~education, data=train)
+summary(manova_fit)
+```
+
+Our MANOVA test-statistic was significant (even after bonferroni corrected threshold). Hence, we perform univariate ANOVAs to find responses showing a mean difference across education groups as well as post-hoc t-test to find specific education groups that differ for some numeric measure.
+
+```{r}
+summary.aov(manova_fit)
+```
+
+All univariate ANOVA results were significant (even after bonferroni corrected threshold): for each our of numeric responses, at least one education level differs from others! Let's run pairwise t-tests to see exactly which pairs of education level differ for each numerical response!
+
+```{r}
+pairwise.t.test(train$previous_year_rating, train$education, p.adj="none")
+pairwise.t.test(train$no_of_trainings, train$education, p.adj="none")
+pairwise.t.test(train$age, train$education, p.adj="none")
+pairwise.t.test(train$length_of_service, train$education, p.adj="none")
+pairwise.t.test(train$avg_training_score, train$education, p.adj="none")
+```
+
+An one-way MANOVA was conducted to determine the effect of education on previous year ratings, age, number of trainings, length of service, and average training score of employees where significiant differences were found amongst the genders for at least one of the numerical variables with Pillai trace = 0.13204, approx F = 682.82, p = < 2.2e-16. Univariate ANOVA for each numeric variable was conducted as a follow-up tests to the MANOVA, where all ANOVAs were significant: F(2, 48303) = 7.7021, p = 0.0004524 < 0.05, F(2, 48303) = 32.18, p = 1.081e-14 < 0.05, F(2, 48303) = 3601.3, p < 2.2e-16, F(2, 48303) = 1314.3, p < 2.2e-16, F(2, 48303) = 12.585, p = 3.433e-06 < 0.00294, for no_of_trainings, age, length_of_service, and avg_training_score respectively. 
+
+In all, we have conducted 1 MANOVA, 5 ANOVA, and 15 T-tests, or 21 tests in total, leaving our overall type-I error rate as 1 - (0.95)^21 = 0.6594384 if unadjusted. The Bonferroni adjusted significant level should then be 0.05/21 = 0.002380952. Using this corrected threshold, the MANOVA and ANOVA tests still hold significant; however, using this threshold, here's how the t-test results change:
+
+#### Response = previous_year_rating
+
+* Bachelor's vs Below Secondary: 0.00238 < 0.006 < 0.05; insignificant after threshold
+* Bachelor's vs Master's & above: 0.00238 < 0.003 < 0.05; insignificant after correction
+* Below Secondary vs Master's & above: 0.00238 < 0.035 < 0.05; insignificant after correction
+
+We see that although there's a significant difference in previous year ratings of employees amongst all possible pairwise education contrasts, the difference in previous year ratings is insignificant after correction!
+
+#### Response = no_of_trainings
+
+* Bachelor's vs Below Secondary: 0.837 > 0.05 > 0.00238; insignificant despite threshold
+* Bachelor's vs Master's & above: 1.4e-15 << 0.00238 < 0.05; significant despite thresold
+* Below Secondary vs Master's & above: 0.063 > 0.05 > 0.00238; insignificant despite threshold
+
+We see that there's a significant difference in the number of trainings received between employees with bachelor's degree and employees with Master's degree or above, which is somewhat surprising since both education levels are considered to be 'above average'. Furthermore, it's even more surprising that there's no signficant difference in the number of trainings received between employees with below secondary degree and employees with Master's degree or above, since one would expect employees with a lower education level to need more training. This suggest that perhaps employee's practical ability to work does not have a clear link to their education level.
+
+#### Response = age
+
+* Bachelor's vs Below Secondary: p < 2e-16 << 0.00238 < 0.05; significant despite thresold
+* Bachelor's vs Master's & above: p < 2e-16 << 0.00238 < 0.05; significant despite thresold
+* Below Secondary vs Master's & above: p < 2e-16 << 0.00238 < 0.05; significant despite thresold
+
+We see that there's a significant difference in age between all pairwise employee educational levels. This is expected since higher education levels is usually correlated to older ages since one must spent years in academia to earn the appropriate degrees (ie. typically one earns their college degree at around 24 years old).
+
+#### Response = length_of_service 
+
+* Bachelor's vs Below Secondary: p < 2e-16 << 0.00238 < 0.05; significant despite thresold
+* Bachelor's vs Master's & above: p < 2e-16 << 0.00238 < 0.05; significant despite thresold
+* Below Secondary vs Master's & above: p < 2e-16 << 0.00238 < 0.05; significant despite thresold
+
+We see that there's a significant difference in length_of_service between all pairwise employee educational levels. This is expected since higher education levels is usually correlated to older ages since one must spent the appropriate time in academia to earn the corresponding degrees (ie. typically one earns their college degree at around 24 years old).
+
+#### Response = avg_training_score 
+
+* Bachelor's vs Below Secondary: 0.00238 < 0.023 < 0.05; insignificant after correction
+* Bachelor's vs Master's & above: 4e-06 < 0.00238 < 0.05; significant despite thresholds
+* Below Secondary vs Master's & above: 0.196 > 0.05 > 0.00238; insignificant despite thresholds
+
+The pairwise t-tests for employee average training score is more of a mixed bag. There's not a significant difference in average training score between employee's of below secondary education compared to employees with a master's or above degree despite threholds, which is intriguing since one would expect that such a large difference in education level would lead to a difference in ability (manifested in training scores). Moreover, there's not a significant different in average training score between employee's of below secondary education compared to employees with a bachelor's degree after correction, providing further evidence to suggest a non-correlation between education level and work ability. Instead, there's actually a significant difference in average training score between employee's with a bachelor's degree compared to employees with a master's or above degree, perhaps suggesting that in the domain of higher-educated people, work ability matters less and is thus more variable and prone to be different.  
+
+#### Assumptions Accessment:  
+* Random samples, independent observations is not met; data most likely collected from one company
+* Multivariate normality of DVs (or each group) is not met; Shapiro-Wilk Normality Test returns very small p-values for all pairwise education group comparisions
+* Homogeneity of within-group covariance matrices is not met; Box's M-test for Homogeneity of Covariance Matrices returns p = 1.973611e-74 < 0.05 to reject null of equal variance for each response variable within each group
+* Linear relationships among DVs is likely met using the pairwise scatterplots
+* No extreme univariate or multivariate outliers is likely met using the boxplot;
+* No multicollinearity (i.e., DVs should not be too correlated) is mostly met; however, age and length_of_service is somewhat correlated and one would expect an older employee to have been in service to the company longer
+
+```{r}
+library(rstatix)
+library(GGally)
+# Shapiro-Wilk Normality Test cannot be done for over 5000 groups, sadly, so we take a sample
+sample1 <- train %>% sample_n(5000)
+
+group <- sample1$education
+DVs <- sample1 %>% select(previous_year_rating, 
+                          no_of_trainings, age, length_of_service, avg_training_score)
+
+#Test multivariate normality for each group (null: assumption met)
+sapply(split(DVs,group), mshapiro_test)
+
+#If any p<.05, stop (assumption violated). If not, test homogeneity of covariance matrices
+
+#Box's M test (null: homogeneity of vcov mats assumption met)
+box_m(DVs, group)
+
+# linear relationships among DVs
+ggpairs(DVs)
+
+# univariate outliers
+DVs %>% pivot_longer(cols = colnames(DVs)) %>% 
+  ggplot(aes(x = name, y = value)) +
+  geom_boxplot() + 
+  labs(x = "DVs", y = "Value", title = "Distribution of Values within each Numerical Variable") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# multicollinearity
+DVs %>% cor()
+```
+
+### Randomization Test
+
+From above, it seems that there's a somewhat strong correlation between age and length of service. We now wish to test the significance of this correlation using a randomization test:
+
+Null: There's not a signficant correlation between age and length of service (r = 0)
+Alternative: There's a significant correlation between age and length of service (r != 0)
+
+```{r}
+original <- as.numeric(cor(train$age, train$length_of_service))
+cor_vector <- vector()
+options(pillar.sigfig=6)
+for (iter in 1:5000) {
+  temp <- train %>% mutate(permuted_service = sample(train$length_of_service))
+  cor_vector[iter] <- cor(temp$age, temp$permuted_service)
+}
+```
+
+```{r}
+# what proportion is greater than and less than our observed correlation?
+cat("The likelihood of observing our original correlation of 0.62 is", 
+    mean(cor_vector > original | cor_vector < -original))
+
+# plot the distribution
+ggplot() +
+  geom_histogram(aes(x = cor_vector)) + 
+  labs(x = "Randmoized Correlation", y = "Relative Frequency", 
+       title = "Distribution of Permuted Correlation Statistic") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# plot the distribution with our test-statistic
+ggplot() +
+  geom_histogram(aes(x = cor_vector)) + 
+  geom_vline(xintercept = original, linetype = "dotted", color = "red") + 
+  labs(x = "Randmoized Correlation", y = "Relative Frequency", 
+       title = "Distribution of Permuted Correlation Statistic with Line at Original") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+We see here a sampling distribution of r (correlation between age and length of service) in which the true value of r is 0.0, since on average we wish to break any association between age and length of service. We see that values are tightly banded around 0.0, with the tails only around absolute magnitudes of 0.01. Hence, when compared to the original correlation of r = 0.62, we see that there's a possibility of 0 (p = 0 using two-tailed method) to observe this statistic by chance alone using our sampling distribution! Hence, we reach the conclusion that there's a significant correlation between age and length of service (r != 0).
+
+### Linear Regression Model 
+
+We wish to predict length of service using gender and age (given our consistent indication of association between age and length_of_service, but does gender play a factor as well?)
+
+```{r}
+# centering length_of_service and age
+train$age_c <- train$age - mean(train$age)
+train$length_of_service_c <- train$length_of_service - mean(train$length_of_service)
+
+linear_fit <- lm(length_of_service_c ~ gender*age_c, data = train)
+summary(linear_fit)
+```
+
+#### Coefficient Interpretations:  
+* Intercept: Predicted average length of service for a female employee with average age is 0.060326 years (~22 days)  
+* genderm: In employees of average age, the average length of service for male employees is 0.086722 years (~1 month) less than the average length of service in years for female employees  
+* age_c: Female employees show an average increase of 0.344353 years in length of service for every one-year increase in age.  
+* genderm:age_c: The slope for average length of service is 0.002736 higher for male compared to female employees (basically gender isn't a significant factor!).  
+
+Proportion of the variation in length_of_service explained by our model: 0.3852 (Adjusted-R-Squared, not very good fit!)
+
+```{r}
+# visualization of regression model
+ggplot(train, aes(x = age_c, y = length_of_service_c, color = gender)) +
+  geom_point() + 
+  geom_smooth(method="lm") + 
+  labs(x = "Age Centered", y = "Length of Service Centered", 
+       title = "Distribution of Age with respect to Length of Service, colorized by Gender") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+#### Access Assumptions:  
+* Random Sample and Independent Observations: likely not satisified; dataset likely from a select few companies  
+* linearity: ok, residuals vs fitted plot centered at 0  
+* normality: Kolmogorov-Smirnov (KS) test failed with p < 2.2e-16, residuals not normally distributed  
+* homoskedasticity: violated, Breusch-Pagan test failed with p < 2.2e-16, residuals vs fitted plot show a textbook funnel pattern (indication of heteroscedasticity)  
+
+```{r}
+library(sandwich)
+library(lmtest)
+
+resids <- linear_fit$residuals
+fitted <- linear_fit$fitted.values
+
+# linearity test, homoskedasticity test
+ggplot() + 
+  geom_point(aes(fitted,resids)) + 
+  geom_hline(yintercept=0, col="red") + 
+  ggtitle("Residuals vs Fitted Values") + 
+  theme(plot.title = element_text(hjust = 0.5))
+
+# formal homoskedasticity test
+bptest(linear_fit)
+
+# normality test
+ks.test(resids, "pnorm", mean=0, sd(resids))
+```
+
+#### Robust Standard Errors
+
+We have violated the homoskedasticity assumptions, time to use robust standard errors!
+
+```{r}
+#uncorrected SEs
+summary(linear_fit)$coef
+
+#corrected SE
+coeftest(linear_fit, vcov = vcovHC(linear_fit))
+```
+
+Using robust standard errors, we see that the standard error for the intercept as well as for the 'genderm' term barely changed. However, the standard errors for coefficients 'age_c' and the interaction term 'genderm:age_c' increased significantly (they nearly doubled as before). However, this did not impact the significance of each coefficient. We see that both gender and age are still significant factors individually in predicting length of service, but there's not a significant interaction between gender and age.
+
+#### Bootstrapped Standard Errors
+
+We have actually violated both the normality and homoskedasticity assumptions, so bootstrapped standard errors is our best bet.
+
+
+```{r}
+# use boostrapped SE here
+samp_distn <- replicate(5000, {
+  boot_dat <- sample_frac(train, replace=T) #take bootstrap sample of rows
+  fit <- lm(length_of_service_c ~ gender*age_c, data=boot_dat) #fit model on bootstrap sample
+  coef(fit) #save coefs
+})
+```
+
+Comparing results using all standard errors:
+
+```{r}
+#uncorrected SEs
+summary(linear_fit)$coef
+
+#corrected SE
+coeftest(linear_fit, vcov = vcovHC(linear_fit))
+
+#boostrapped SE
+df <- linear_fit$df.residual
+samp_distn %>% t %>% as.data.frame %>% summarize_all(sd) %>% 
+  pivot_longer(cols = everything(), names_to = "coefficient", values_to = "Std. Error") %>% 
+  mutate(Estimate = summary(linear_fit)$coef[, 1]) %>% 
+  mutate("t value" = Estimate / `Std. Error`) %>% 
+  mutate("Pr(>|t|)" = pt(abs(`t value`), df, lower.tail = FALSE)*2) %>% 
+  select(coefficient, Estimate, "Std. Error", "t value", "Pr(>|t|)") %>% as.matrix()
+```
+
+We see that the bootstrapped standard errors is very similar to the robust standard errors with minimum difference. Hence, we see that the t and p-values are very similar to that using the robust standard errors with no impactful changes in significance. 
+
+### Logistic Regression Model
+
+```{r}
+class_diag <- function(probs,truth){
+  #CONFUSION MATRIX: CALCULATE ACCURACY, TPR, TNR, PPV
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+  f1=2*(sens*ppv)/(sens+ppv)
+
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+  
+  #CALCULATE EXACT AUC
+  ord<-order(probs, decreasing=TRUE)
+  probs <- probs[ord]; truth <- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+  TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+  n <- length(TPR)
+  auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,f1,auc)
+}
+```
+
+#### Using gender, KPIs_met, age, length_of_service to predict is_promoted
+
+```{r}
+logit_fit <- glm(is_promoted ~ gender + KPIs_met + age_c + length_of_service_c, data = train,
+                 family = binomial(link="logit"))
+coeftest(logit_fit)
+cat("Exponentiated Coefficients are", "\n")
+exp(coef(logit_fit))
+```
+
+Coefficient interpretation:  
+* Intercept: the predicted odds of promotion for a female employee who has not met her KPI with average age and length_of_service years is e^(-3.1435) = 0.04313157. (significant, p < 2.2e-16)  
+* genderm: Controlling for KPI status, age, and length_of_service, the predicted odds of promotion for male employees is 0.96892294 times that of females (not significant, p = 0.3737 > 0.05)  
+* KPIs_met1: Controlling for gender, age, and length_of_service, the predicted odds of promotion for employees who met their KPI is 4.87674137 times that of employees who did not met their KPIs (significant, p < 2.2e-16)  
+* age_c: Controlling for gender, KPI status and length_of_service, every one year increasae in age multiplies the odds of promotion by 0.98472499. (overall odds for promotion decreases by ~2%, significant, p = 1.474e-07 < 0.05)  
+* length_of_service_c: Controlling for gender, KPI status and age, every one year increase in length of service multiplies the odds of promotion by 1.02159111 (overall odds for promotion increases by ~2%, p = 4.245e-05 < 0.05)  
+
+```{r}
+# confusion matrix
+probs <- predict(logit_fit, newdata = train, type = "response")
+predicted <- ifelse(probs > 0.5, 1, 0)
+table(truth = train$is_promoted, prediction = predicted) %>% addmargins
+
+# use class function to calculate and compute Accuracy, Sensitivity (TPR), Specificity (TNR), Precision (PPV), and AUC
+class_diag(probs, train$is_promoted)
+```
+
+Per the in-sample AUC of 0.695, the model is performing poorly using the class rule of thumb. From the confusion matrix, our accruacy metric (44104 classified correctly out of 48306) is 0.913, which looks good until you realize that the dataset consist mainly of non-promoted employees to begin with (~92% not promoted), so that this classifier is doing even worse then the naive classifier that simply guess the majority class! Our sensitivity metric (0 true positives out of 4202 total positives) is 0 since we predict no positives using threshold = 0.5! Our specificity metric (44104 true negatives out of 44104 total negatives) is 1 since we always predict negatives! Our precision metric (0 true positives out of no total predicted true) is 0, but our metric shows a NaN due to division by 0 error.
+
+```{r}
+# density plot of the log-odds (logit) colored/grouped by is_promoted
+log_odds <- predict(logit_fit, newdata = train, type = "link") # get log odds
+train %>% mutate(promotions = factor(is_promoted)) %>% 
+ggplot(aes(log_odds, fill=promotions)) + 
+  geom_density(alpha=.3) +
+  geom_vline(xintercept=0,lty=2) + 
+  ggtitle("Density plot of Log-Odds with respect to Truth") + 
+  theme(plot.title = element_text(hjust = 0.5))
+
+# ROC curve (plot) and calculate AUC
+library(plotROC)
+#geom_roc needs actual outcome (0,1) and predicted prob (or predictor if just one)
+ROCplot <- ggplot(train) + 
+  geom_roc(aes(d=as.numeric(is_promoted)-1,m=probs), n.cuts=0) + 
+  ggtitle("ROC Curve") + 
+  theme(plot.title = element_text(hjust = 0.5))
+ROCplot
+calc_auc(ROCplot)
+```
+
+The density plot looks weird; there's nothing to the right of the line at log_odds = 0! This is again because using the threshold of p = 0.5, the model actually does not predict any promotions for any employees in the training dataset! Hence, the red curves here are the true negatives, while the blue-overlays are false negatives (predict no promotion while the employee was actually promoted). Clearly, there's a lot of overlap, an indication of inadequate modeling.
+
+The ROC curve looks like a folded segment that's far from the upper-left corner (bad). On average using our model, 69.45% of the time promoted employees will have higher logit scores than non-promoted employees. Hence, we can see that our model is not doing a great job (hard to keep TPR high while FPR low), such that it's difficult to predict if employee is promoted or not using gender, KPI status, age, and length of service.
+
+#### Using All available variables to predict is_promoted
+
+```{r}
+# fix variables from train
+train <- train %>% select(-age_c, -length_of_service_c)
+train <- train %>% mutate_if(is.numeric, funs(.-mean(.)))
+
+# fit the model
+full_fit <- glm(is_promoted ~ ., data = train, family = binomial(link="logit"))
+
+# calculate stats
+probs <- predict(full_fit, newdata = train, type = "response")
+predicted <- ifelse(probs > 0.5, 1, 0)
+
+# confusion matrix
+table(truth = train$is_promoted, prediction = predicted) %>% addmargins
+
+# stats
+class_diag(probs, train$is_promoted)
+```
+
+Per the in-sample AUC of 0.875, the model has good performance. From the confusion matrix, our accruacy metric (43819 + 1162 = 44981 classified correctly out of 48306) is 0.931, which compared to the naive classifier (92% non-promotion in dataset) is slightly better. Our sensitivity metric (1162 true positives out of 4202 total positives) is 0.277, indiciating that we have a lot of false negatives (3040 out of 4202), an indication that our model is still very conservative in predicting if someone gets promoted. Our specificity metric (43819 true negatives out of 44104 total negatives) is 0.994, which means we have very few false positives (285 out of 44104), again an indication of modest promotion predictions. Our precision metric (1162 true positives out of 1447 total predicted true) is 0.803, which implies that at least for the ones that we predict to be promoted, they have a 80% chance of actually being promoted (pretty good!).
+
+#### CV on full model
+
+Of course, this is only metrics on in-sample performance. We now perform 10-fold cross validation to obtain an estimate on the estimated out-of-sample performance of this seemingly complex model!
+
+```{r}
+# 10-fold cross validation
+k = 10
+
+data <- train[sample(nrow(train)), ]  # randomly order rows
+folds <- cut(seq(1:nrow(train)), breaks = k, labels = F)  # create folds
+diags <- NULL
+for (i in 1:k) {
+    ## Create training and test sets
+    train_temp <- data[folds != i, ]
+    test_temp <- data[folds == i, ]
+    truth <- test_temp$is_promoted  ## Truth labels for fold i
+    ## Train model on training set (all but fold i)
+    fit <- glm(is_promoted ~ ., data = train_temp, family = "binomial")
+    ## Test model on test set (fold i)
+    probs <- predict(fit, newdata = test_temp, type = "response")
+    ## Get diagnostics for fold i
+    diags <- rbind(diags, class_diag(probs, truth))
+}
+summarize_all(diags, mean)  #average diagnostics across all k folds
+```
+
+Generally, our out-of-sample metrics remained relatively similar with respect to the in-sample metric, which is a surprise. Our AUC slightly decreased from 0.8746113 to 0.8723933, which indicates that our grand model including every variable possible may actually not be overfitting too much! That is, on average using our full model, 87.24% of the time promoted employees will have higher logit scores than non-promoted employees, which is pretty good as an out-of-sample success estimate!
+
+#### Lasso Regularization
+
+But, even if our model isn't supposedly overfitting, are there any variables that may not be significantly contributing to predicting promotion anyway (ie. gender was shown not to be signficant already using only a subset of variables)? That is, we can perform LASSO on the same model/variables, choosing an optimal lambda that allow us to disregard insignificant variables.
+
+```{r}
+library(glmnet)
+options(pillar.sigfig=6)
+
+# generate input output
+y <- as.matrix(train$is_promoted)
+train_preds <- model.matrix(is_promoted ~ ., data = train)[, -1]  #grab predictors
+train_preds <- scale(train_preds)
+
+# run cross validation to chosen optimal lambda that maximizes classification
+cv <- cv.glmnet(train_preds, y, family = "binomial")
+cat("The optimal lambda one standard error away from the best is", cv$lambda.1se, "\n")
+
+# plot to see variable selection progress with respect to lambda
+{plot(cv$glmnet.fit, "lambda", label=TRUE); abline(v = log(cv$lambda.1se)); abline(v = log(cv$lambda.min),lty=2)}
+
+# no need to conduct the lasso fit, cv already got us
+coef(cv, s = cv$lambda.1se)
+```
+
+Our chosen lambda was 0.0009498877, which means that we are not really punishing the model complexity. From the coefficients of lasso, we deduce that we can remove the following terms: regionregion_10, regionregion_13-15, regionregion_18, regionregion_27, regionregion_30, regionregion_8, genderm, recruitment_channelreferred, recruitment_channelsourcing. That is, it seems that most of the 13 variables in our dataset is valid and significant in predicting whether someone is promoted or not, besides 'gender' and 'recruitment_channel'. This seems fair, since one would (hopefully) expect promotions to be non-biased based on employee gender as well as their origin of recruitment, otherwise this company could face potential charges. In particular, we see that employees in the Sales & Marketing Department have an especially high chance of promotion (potentially because they are the frontliners that bring in profit) while employees in the Technology Department in comparison has a comparatively much lower chance in promotion. Further, the promotion does not appear to be biased per region or education, but we do not that the employee's average training score plays a much large role in determining their chances at promotion as compared to other variables.
+
+Let's see how this lasso model would perform using out-of-sample metrics:
+
+```{r}
+k = 10
+
+# we first grab the meaningful predictors
+X <- train_preds[, !colnames(train_preds) %in% c("regionregion_10", "regionregion_13", "regionregion_14", 
+                      "regionregion_15", "regionregion_18", "regionregion_27", 
+                      "regionregion_30", "regionregion_8", "genderm", "recruitment_channelreferred", 
+                      "recruitment_channelsourcing")]
+y <- as.matrix(train$is_promoted)
+
+# generate the subset dataframe to use
+data <- as.data.frame(cbind(X, y)) %>% mutate_all(as.numeric) %>% 
+    mutate(V43 = as.factor(V43)) %>% dplyr::rename(is_promoted = V43)
+
+# permute rows and set up for CV
+data <- data[sample(nrow(data)), ]  # randomly order rows
+folds <- cut(seq(1:nrow(data)), breaks = k, labels = F)  # create folds
+diags <- NULL
+for (i in 1:k) {
+  ## Create training and test sets
+  train_temp <- data[folds != i, ]
+  test_temp <- data[folds == i, ]
+  truth <- test_temp$is_promoted  ## Truth labels for fold i
+  ## Train model on training set (all but fold i)
+  fit <- glm(is_promoted ~ ., data = train_temp, family = "binomial")
+  ## Test model on test set (fold i)
+  probs <- predict(fit, newdata = test_temp, type = "response")
+  ## Get diagnostics for fold i
+  diags <- rbind(diags, class_diag(probs, truth))
+}
+summarize_all(diags, mean)  #average diagnostics across all k folds
+```
+
+Our AUC using the lasso model is slightly less than that of the full model, but is in general close enough and could simply be due to randomness in shuffling the rows of our dataset. Hence, we can conclude that the lasso model is just as powerful as using all variables while also making a good attempt at better interpretability by allow using to exclude gender and recruitment_channels as insignficant predictors! 

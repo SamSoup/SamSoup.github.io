@@ -1,0 +1,24 @@
+---
+title: Test
+author: Sam Su
+date: '2020-12-02'
+slug: test
+categories: []
+tags: []
+description: ''
+---
+
+[Link to project 1](projects/project1/)
+
+[Link to google](https://www.google.com)
+
+```{r}
+print("This is a R Chunk")
+```
+
+
+```{python}
+print("This is a Python Chunk")
+```
+
+![](/img/cab.jpg)

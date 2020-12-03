@@ -1,8 +1,284 @@
 ---
-title: "Project 1"
-author: "Me"
-date: "2020-12-01"
+title: "Project1"
+author: "Sam Su"
+date: "10/9/2020"
 output: html_document
 ---
 
-## Test Project 1
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+### Introduction
+
+I have always loved reading, so I thought may not use R and data science to help me decided which book I should read next! After poking around on Kaggle, I have found two datasets containing a myraid of information on many titles. The first dataset by Soumik originated from him scraping the GoodReads API using ISBNs and contains the variables 'bookID' (a unique integer associated with each book), 'title', 'authors', 'average rating' (0-5 scale), 'isbn', 'isbn13', 'langauge code' (eng or other languages), 'num_pages', 'ratings_count' (total number of ratings), 'text_reviews_count' (total number of written text reviews). Out of these variables, 'ratings_count' and 'average_rating's is highly associated, since the latter is simply the mean of the total ratings score divided by the former. However, we wish to compare average ratings so that book suggestions will not be biased by the number of ratings. Furthermore, I would expect 'ratings_count' and 'text_review_count' to be highly correlated, since if a book has many ratings, which means that it must be somewhat popular (or notorious), so the said book probably also has many written critic ratings.  
+
+The second dataset authored by Dylan Castillo was originally intended to be an extension of Soumik's dataset, but this time using the Google Books API (Crawler) by ISBNs. This dataset contains the variables 'isbn13', 'isbn10', 'title', 'subtitle', 'authors', 'categories' (genre information), 'thumbnail' (urls of book cover), 'description' (short summary), 'published_year', and 'average_rating' (0-5 again). As one expects, this dataset should largely overlap with the first chosen dataset, thus when we join we can afford an inner join by ISBN (11 and 13) as both datasets contain essentially the same information for different titles. For this dataset, I would expect an association between 'ratings_count' and 'average_ratings', where the latter again is total ratings normalized by the former. However, I also speculate that the more ratings a particular book has, then the higher its ratings will be, given that people cared enough to bestow a rating and can flush out extreme reviews.  
+
+Finally, the dataset can be found at:  
+https://www.kaggle.com/jealousleopard/goodreadsbooks  
+https://www.kaggle.com/dylanjcastillo/7k-books-with-metadata
+
+### Tidying
+
+```{r}
+library(tidyverse)
+select <- dplyr::select # resolve conflict with MASS
+
+# read in datasets
+books <- read.csv("books.csv")
+books2 <- read.csv("books2.csv")
+
+# first look at dataset
+books %>% glimpse()
+books2 %>% glimpse()
+```
+
+The datasets appears tidy and does not require pivot functions, which will be used to clean up summary statistics later. However, after some more in-depth visual inspection, I have noticed some trends. In particular, some observations (books) seems to have information keyed-in wrong, some field order got scrambled (leaving NAs in one variable and obviously false information in another), some information/columns share the same information, some variables are not the correct type. We fix a variety of small issues below; when all is done, we have lost 5 observations in the first dataset.
+
+```{r}
+# fix some obvious data issues:
+# Fields with NAs are keyed wrong, for simplicity let's drop them
+# we also don't need the bookID field
+books <- books %>% na.omit() %>% select(-bookID)
+
+# in books1, average_rating, num_pages should be dbl and int respectively
+books <- books %>% mutate(average_rating = as.numeric(average_rating), 
+                          num_pages = as.numeric(num_pages))
+# Let's drop the authors and leave only the primary 
+# (ie. get rid of all authors after the first '/')
+books <- books %>% separate(authors, into = "authors", sep = "/")
+
+# we need to make isbn13 in books2 a character vector
+books2 <- books2 %>% mutate(isbn13 = as.character(isbn13))
+# we should drop the shared description columns in books2: no good way to combine
+books2 <- books2 %>% select(-c("title", "authors", "published_year"))
+```
+
+```{r}
+# dataset seems tidely now, but let's make sure
+# let's investigate if each book (observation) is uniquely identified by 
+# ISBN10 and ISBN13 in each dataset
+books %>% select(isbn, isbn13) %>% summarize_all(n_distinct)
+books2 %>% select(isbn10, isbn13) %>% summarize_all(n_distinct)
+
+# we note that books2 is tidy, where all books have an unique isbn10 and isbn13
+# However, there seems to be a duplicate in books1?
+# we simply excluded that one
+books <- books %>% filter(!duplicated(isbn))
+```
+
+### Joining/Merging
+
+After contemplation, I have decided to perform an inner join. For one, the second dataset is an extension of the first, which means that we should obtain a fairly large amount of shared observations (5686 total). This way, we also don't have to worry about managing possible NAs in our merged dataset. The problem comes when deciding the which columns to merge on, again given that the two datasets shares a decent amount of similar variables (ie. authors, isbn, title, average_rating, num_pages, ratings_count). In fact, values in these shared columns aren't exactly the same, and so I have selected only the isbn columns (isbn=isbn10, isbn13) to merge on since that's the universal convention to uniquely identify a book.  
+
+```{r}
+# we can now join our dataset!
+merged_books <- books %>% inner_join(books2, convert = T, 
+                                     by = c("isbn" = "isbn10", "isbn13" = "isbn13"))
+merged_books %>% glimpse()
+```
+
+After joining, we lost about 5440 (about half) observations. This could mean that we have lost some levels of our categorical variables (ie. we no longer have non-english books), but it turns out it's not a big problem given that our categorical data has many levels.  
+
+To simplify information, I have decided that for the shared character variables (ie. title, author, published_year which can be derived from date), to simply keep the first dataset's information and drop the same columns in the second dataset, since they describe the same information and there's really no good way to combine the information together somehow. For the shared numerical variables (ie. average_rating, num_pages, ratings_count), I have decided to take an average of them after joining, and then deleting both the original columns.  
+
+```{r}
+# we now create a new column as the ceiled average of the two .x and .y columns
+# besides average_rating, which should be continuous anyways
+merged_books <- merged_books %>% mutate(
+    average_rating = (average_rating.x + average_rating.y) / 2, 
+                        num_pages = ceiling((num_pages.x + num_pages.y) / 2), 
+                        ratings_count = ceiling((ratings_count.x + ratings_count.y) / 2))
+
+# we can now drop the .x and .y columns all together
+merged_books <- merged_books %>% select(-(contains(".")))
+
+# finally, move some columns around for easy viewing!
+merged_books <- merged_books %>% relocate(title, authors, average_rating, ratings_count, num_pages, language_code, categories, isbn, isbn13)
+
+merged_books %>% glimpse()
+```
+
+### Wrangling
+
+```{r}
+library(gt) # tables
+# time for some exploration! 
+# We can first separate publication date into month, day, year new columns
+merged_books <- merged_books %>% 
+  separate(publication_date, into = c("month", "day", "year"))
+merged_books %>% glimpse()
+
+# which book has the highest average_rating with more than 100 ratings? Calvin and Hobbes!
+merged_books %>% filter(ratings_count >= 100) %>% 
+  arrange(desc(average_rating)) %>% select(title) %>% slice(1) %>% .$title
+
+# which book from J.K. Rowling has the highest rating? A set of Harry Potter series!
+merged_books %>% filter(str_detect(authors, "J.K. Rowling")) %>% 
+  arrange(desc(average_rating)) %>% slice(1) %>% .$title
+```
+The Complete Calvin and Hobbes seems to be the best rated book with more than 100 ratings (a childhood classics!). The highest rated title from J.K. Rowling is the Harry Potter series, no surprises here!
+
+```{r}
+# show the correlation matrix between numerical variables
+# Interpretation can be found under the visualization section
+merged_books %>% select(is.numeric) %>% cor() %>% round(3) -> cor_matrix
+colnames(cor_matrix) %>% cbind(cor_matrix) %>% as.data.frame %>% gt()
+```
+
+
+```{r}
+# show some number of distinct for non-numerical variables
+merged_books %>% select(is.character) %>% 
+  dplyr::summarise_all(.funs = list(".distinct" = n_distinct)) %>% 
+  pivot_longer(everything(), names_to = "variables", values_to = "distinct_count") %>% 
+  separate(variables, into = c("variable"), sep = "_\\.") %>% gt()
+```
+Expectedly, we have 12 unique values for month (1-12) and day (1-31). However, we see that even though each book has an unique isbn and isbn13, there are some duplicated titles (most likely different versions/reprints). We have only 5 language codes, which indicates that many were lost when we admitted all NA entries. The thumbnail and description are largely unique, while there's also a surprising amount of unique publishers and categories. 
+
+```{r}
+# calculate summary stats, no groups
+# (mean, sd, var, quantile, min, max)
+summary_stat <- merged_books %>% select(is.numeric) %>% 
+  summarize_all(.funs = list(".mean" = mean, ".sd" = sd, ".var" = var, 
+      ".median" = median, ".min" = min, ".max" = max), na.rm = T)
+
+# we should now clean up summary_stat using pivot functions:
+# we first stuff all stats into a column with their values
+# we then separate out the statistics from their variable into their own column
+# finally, we make a separate column per stat function for table viewing
+summary_stat %>% round(3) %>% pivot_longer(everything(), 
+                                           names_to = "variables", values_to = "values") %>% 
+  separate(variables, into = c("variable", "stat"), sep = "_\\.") %>%  
+  pivot_wider(names_from="stat",values_from="values") %>% gt()
+```
+On average, our merged dataset has a relative high average_rating at ~4, and given that sd = 0.329, that means 95% of our titles has an average_rating [3.4, 4.6], or "above average" rating. The average_rating median is very similar to the mean, which indicates that there's no extreme outliers pulling the mean (given the restricted range 0-5). The min and max logically follows as 0 and 5. The other metrics in contrast has relatively a much larger spread and often conflicting mean and median values, indicative of outliers (ie. very long/popular books). Thus, we cannot make generalizations as easily. 
+
+```{r}
+# calculate summary stats, group by language_code
+summary_stat_lang <- merged_books %>% 
+  group_by(language_code) %>% 
+  select(is.numeric) %>% 
+  summarize_all(.funs = list(".mean" = mean, ".sd" = sd, ".var" = var, 
+                             ".median" = median, ".min" = min, ".max" = max))
+
+# we should now clean up summary_stat_lang
+summary_stat_lang %>% 
+  pivot_longer(is.numeric, names_to = "variables", values_to = "values") %>% 
+  separate(variables, into = c("variable", "stat"), sep = "_\\.") %>%  
+  pivot_wider(names_from="stat",values_from="values") %>% 
+  mutate_if(is.numeric, round, 3) %>% gt()
+```
+When categorized by language codes, our metric trends follows from both. However, we note that the multilingual books in particular has a higher average_rating and much smaller ratings_count/text_reviews_count compared to the other english books. This is probably first due to its smaller sample size compared to other english books as well as the fact that it requires substantial knowledge to read and review books in a different language, but they are often of high quality given the substantial translation work behind.
+
+```{r}
+# calculate summary stats, group by authors and language codes
+# notice there are too many authors, 
+# how about we just choose 3 of my favorites authors!
+summary_stat_auth_lang <- merged_books %>% 
+  filter(authors %in% c("Stephen King", "J.K. Rowling", "Ovid")) %>% 
+  group_by(authors, language_code) %>% select(is.numeric) %>% 
+  summarize_all(.funs = list(".mean" = mean, ".sd" = sd, ".var" = var, 
+                             ".median" = median, ".min" = min, ".max" = max))
+
+# we should now clean up summary_stat_auth_lang
+summary_stat_auth_lang %>% 
+  pivot_longer(is.numeric, names_to = "variables", values_to = "values") %>% 
+  separate(variables, into = c("variable", "stat"), sep = "_\\.") %>%  
+  pivot_wider(names_from="stat",values_from="values") %>% 
+  mutate_if(is.numeric, round, 3) %>% gt()
+```
+General trend again follows: average_rating has a much smaller spread compared to other variables. The table seems short since selected authors only publish in particular language. Nevertheless, we can conclude that J.K. Rowling's titles are on average rated higher than that of Stephen King's and Ovid's, though this may be confounded by the fact that her titles have much more ratings compared to titles of other authors.
+
+### Visualizations
+
+```{r}
+cor_matrix %>% as.data.frame() %>% 
+    rownames_to_column("var1") %>% pivot_longer(-1, "var2", values_to = "correlation") %>% 
+    ggplot(aes(var1, var2, fill = correlation)) + 
+    geom_tile() + scale_fill_gradient2(low="red",mid="white",high="blue") + 
+    geom_text(aes(label=round(correlation,2)),color = "black", size = 4) + 
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    coord_fixed() + xlab("") + ylab("")
+```
+The correlation heatmap reveals that from our numerical variables, only ratings_count and text_reviews_count is significantly correlated, which makes sense logically since one would expect a partitular title to be more critically acclaimed the more people have read and rated that particular title. On the other hand, other pairs of variables are weakly correlated, which is somewhat surprising since one would expect more critically acclaimed titles to be particularly high or low in quality/rating.
+
+```{r}
+library(ggExtra)
+p1 <- ggplot(merged_books) + 
+    geom_point(aes(x = num_pages, y = average_rating, 
+                   color = language_code, shape = 1)) +
+    scale_shape_identity() + 
+    scale_color_brewer(palette = "Set1", 
+                       label = c("eng-Canada", "eng-Great Britain", "eng-US", 
+                                 "eng", "Multilingual")) + 
+    scale_y_continuous(breaks = seq(0, 5, 0.2)) + 
+    scale_x_continuous(breaks = seq(0, 3500, 500)) + 
+    labs(color= "Language Codes", x = "Total Pages", y = "Average Rating", 
+         title = "Book Average Rating vs Total Pages") + 
+    theme_minimal() + 
+    theme(plot.title = element_text(hjust = 0.5), legend.position = c(0.8, 0.35))
+ggMarginal(p1, type = 'densigram')
+```
+The marginal distribution of novel average ratings is roughly normal (symmetric) with mean around rating 4.0, which implies that on average the books in this merged dataset have a relatively high rating (they are good books!). The marginal distribution of total number of pages of the novels is right skewed with mean around 300 pages, which makes sense given that books (except textbooks, especially novels) are typically short and do not go over 1000 pages. This scatterplot does not indicate an apparent relationship between average_rating and total pages, which also makes sense since quantity does not imply quality. When colorized by language codes, we see that almost all books are in English (especially the longer ones, since the effort to translate said books would be monumental) with each sub-category consisting of largely variant book ratings with no significant patterns. 
+
+```{r}
+months <- c("January", "February", "March", "April", "May", "June", "July", 
+            "August", "September", "October", "Novemember", "December")
+# Let's filter down to just a few categories for clearer visualization
+merged_books %>% 
+    filter(categories %in% c("Fiction", "Science", "Business & Economics", 
+                             "Computers", "Religion")) %>% 
+    mutate(months = factor(months[as.numeric(month)], levels = months)) %>% 
+ggplot(aes(x = as.numeric(day), y = average_rating, fill = categories)) +
+  scale_fill_brewer(palette = "Dark2") + 
+    geom_bar(stat="summary",fun=mean) + facet_wrap(~months) + 
+     theme(axis.text.x = element_text(angle=45, hjust=1), 
+           plot.title = element_text(hjust = 0.5)) +
+    labs(title = "Book Ratings per Day of each Month", x = "Day", 
+         y = "Mean Average rating", fill = "Genre") +
+    scale_x_continuous(breaks = c(1, seq(5, 31, 5)))
+
+```
+Based on the categories of books we have selected, it appears that authors like to release these genre books at the first day of each month (most likely to maximize the first monthly sales possible), given that we have the most number of stacked bars at usually day 1 of each month except August (which happens to be around the time of school starting in the fall). For our dataset, the purple colored bars appears most often, meaning that fiction is the most popular category of novels given that it's published the most. Across each month and day, the mean average_rating of each genre appears roughly similar, which makes sense which the quality of a particular novel category should have no relation with respect to the title's publication date. The frequency of each category also remains relative constant throughout each month and day, with the exception of March which curiously have no computer publications. 
+
+### Dimensionality Reduction
+
+```{r}
+library(cluster)
+# we should first see how many clusters we should create
+pam_dat <- merged_books %>% select(is.numeric) %>% scale %>% as.data.frame
+sil_width<-vector()
+for(i in 2:10){  
+  pam_fit <- pam(pam_dat, k = i)  
+  sil_width[i] <- pam_fit$silinfo$avg.width  
+}
+
+# visualize our results to select k
+ggplot()+
+    geom_line(aes(x=1:10,y=sil_width))+
+    scale_x_continuous(name="Number of Clusters (k)",breaks=1:10) + 
+    labs(title = "Average Silhouette Width per Number of Clusters", 
+         y = "Average Silhouette Width") +
+    theme(plot.title = element_text(hjust = 0.5))
+```
+Based on this silhouette width plot, we see that we should elect three clusters since that's the number of clusters that results in the highest average silhouette width, which means that our 3 supposed clusters should be more cohesive, distinct, and parsimonious compared to other number of clusters.
+
+```{r}
+pam <- pam_dat %>% pam(3)
+# now that we ran PAM, save the cluster assignment
+pam_dat <- pam_dat %>% mutate(cluster=as.factor(pam$clustering))
+
+library(GGally)
+ggpairs(pam_dat, columns=1:4, aes(color=cluster))
+```
+For the first column, particularly the num_pages vs average_rating scatterplot, we see three distinct clusters where the red clusters seems to consist of titles with relatively large number of pages, while the blue and green clusters separate out titles with low page numbers but with low and high average_ratings respectively (at z=0, or the overall mean). The same trend is also found in other graphs, where the blue clusters mainly consist of low-rated, small books, while the red cluster consist of large books and the green cluster highly-rated, small books. The clusters seems to overlap relative to variables like text_reviews_count and reviews_count which is highly correlated with each other and thus hard to differentiate. 
+
+```{r}
+# Interpreting Average Silhouette Width
+plot(silhouette(pam), col=1:3, border=NA)
+```
+
+Our average silhouette width was 0.27, which according to the cutoffs is within 0.26-0.5, indicating that the cluster structure is weak and likely superficial.

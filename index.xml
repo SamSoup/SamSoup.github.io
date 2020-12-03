@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Chris Turner</title>
+    <title>Sam Su</title>
     <link>/</link>
-    <description>Recent content on Chris Turner</description>
+    <description>Recent content on Sam Su</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Tue, 01 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 02 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Project 1</title>
-      <link>/project/project1/</link>
-      <pubDate>Tue, 01 Dec 2020 00:00:00 +0000</pubDate>
+      <title>Test</title>
+      <link>/post/2020/12/02/test/</link>
+      <pubDate>Wed, 02 Dec 2020 00:00:00 +0000</pubDate>
       
-      <guid>/project/project1/</guid>
-      <description>Test Project 1</description>
+      <guid>/post/2020/12/02/test/</guid>
+      <description>Link to project 1
+Link to google
+print(&amp;quot;This is a R Chunk&amp;quot;)## [1] &amp;quot;This is a R Chunk&amp;quot;print(&amp;quot;This is a Python Chunk&amp;quot;)## This is a Python Chunk</description>
     </item>
     
     <item>
-      <title>Project 2</title>
+      <title>Project 2: Modeling, Testing, and Predicting</title>
       <link>/project/project2/</link>
-      <pubDate>Tue, 01 Dec 2020 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/project/project2/</guid>
-      <description>Test Project 2</description>
+      <description>Introduction and MotivationAnyone who has worked in the industry has been in the following scenario: you work hard to be promoted for X position, while in the end some competitor Y gets promoted to the position instead. You feel annoyed; you feel that it’s unfair! Y is clearly way less suitable than you are for this position! Y must have cheated or hitched a deal with the boss!</description>
     </item>
     
     <item>
-      <title>Hello R Markdown</title>
-      <link>/post/2015/07/23/hello-r-markdown/</link>
-      <pubDate>Thu, 23 Jul 2015 21:13:14 -0500</pubDate>
+      <title>Project1</title>
+      <link>/project/project1/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>/post/2015/07/23/hello-r-markdown/</guid>
-      <description>R MarkdownThis is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see http://rmarkdown.rstudio.com.
-You can embed an R code chunk like this:
-summary(cars)## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.: 26.00 ## Median :15.0 Median : 36.00 ## Mean :15.4 Mean : 42.</description>
+      <guid>/project/project1/</guid>
+      <description>IntroductionI have always loved reading, so I thought may not use R and data science to help me decided which book I should read next! After poking around on Kaggle, I have found two datasets containing a myraid of information on many titles. The first dataset by Soumik originated from him scraping the GoodReads API using ISBNs and contains the variables ‘bookID’ (a unique integer associated with each book), ‘title’, ‘authors’, ‘average rating’ (0-5 scale), ‘isbn’, ‘isbn13’, ‘langauge code’ (eng or other languages), ‘num_pages’, ‘ratings_count’ (total number of ratings), ‘text_reviews_count’ (total number of written text reviews).</description>
     </item>
     
     <item>

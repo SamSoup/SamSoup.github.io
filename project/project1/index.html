@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="author" content="Chris Turner" />
+    <meta name="author" content="Sam Su" />
     
     <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
-    <title>Project 1</title>
+    <title>Project1</title>
     <meta name="generator" content="Hugo 0.79.0" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="/css/main.css" />
@@ -54,13 +54,13 @@
       <div class="container">
         <div class="blog-post">
           <h3>
-            <strong><a href="/project/project1/">Project 1</a></strong>
+            <strong><a href="/project/project1/">Project1</a></strong>
           </h3>
         </div>
  
 <div class="blog-title">
           <h4>
-         December 1, 2020 
+         January 1, 0001 
             &nbsp;&nbsp;
             
           </h4>
@@ -74,8 +74,2563 @@
 <script src="/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
 
 
-<div id="test-project-1" class="section level2">
-<h2>Test Project 1</h2>
+<div id="introduction" class="section level3">
+<h3>Introduction</h3>
+<p>I have always loved reading, so I thought may not use R and data science to help me decided which book I should read next! After poking around on Kaggle, I have found two datasets containing a myraid of information on many titles. The first dataset by Soumik originated from him scraping the GoodReads API using ISBNs and contains the variables ‘bookID’ (a unique integer associated with each book), ‘title’, ‘authors’, ‘average rating’ (0-5 scale), ‘isbn’, ‘isbn13’, ‘langauge code’ (eng or other languages), ‘num_pages’, ‘ratings_count’ (total number of ratings), ‘text_reviews_count’ (total number of written text reviews). Out of these variables, ‘ratings_count’ and ‘average_rating’s is highly associated, since the latter is simply the mean of the total ratings score divided by the former. However, we wish to compare average ratings so that book suggestions will not be biased by the number of ratings. Furthermore, I would expect ’ratings_count’ and ‘text_review_count’ to be highly correlated, since if a book has many ratings, which means that it must be somewhat popular (or notorious), so the said book probably also has many written critic ratings.</p>
+<p>The second dataset authored by Dylan Castillo was originally intended to be an extension of Soumik’s dataset, but this time using the Google Books API (Crawler) by ISBNs. This dataset contains the variables ‘isbn13’, ‘isbn10’, ‘title’, ‘subtitle’, ‘authors’, ‘categories’ (genre information), ‘thumbnail’ (urls of book cover), ‘description’ (short summary), ‘published_year’, and ‘average_rating’ (0-5 again). As one expects, this dataset should largely overlap with the first chosen dataset, thus when we join we can afford an inner join by ISBN (11 and 13) as both datasets contain essentially the same information for different titles. For this dataset, I would expect an association between ‘ratings_count’ and ‘average_ratings’, where the latter again is total ratings normalized by the former. However, I also speculate that the more ratings a particular book has, then the higher its ratings will be, given that people cared enough to bestow a rating and can flush out extreme reviews.</p>
+<p>Finally, the dataset can be found at:<br />
+<a href="https://www.kaggle.com/jealousleopard/goodreadsbooks" class="uri">https://www.kaggle.com/jealousleopard/goodreadsbooks</a><br />
+<a href="https://www.kaggle.com/dylanjcastillo/7k-books-with-metadata" class="uri">https://www.kaggle.com/dylanjcastillo/7k-books-with-metadata</a></p>
+</div>
+<div id="tidying" class="section level3">
+<h3>Tidying</h3>
+<pre class="r"><code>library(tidyverse)
+select &lt;- dplyr::select  # resolve conflict with MASS
+
+# read in datasets
+books &lt;- read.csv(&quot;books.csv&quot;)
+books2 &lt;- read.csv(&quot;books2.csv&quot;)
+
+# first look at dataset
+books %&gt;% glimpse()</code></pre>
+<pre><code>## Rows: 11,131
+## Columns: 12
+## $ bookID             &lt;chr&gt; &quot;1&quot;, &quot;2&quot;, &quot;4&quot;, &quot;5&quot;, &quot;8&quot;, &quot;9&quot;, &quot;10&quot;, &quot;12&quot;, &quot;13&quot;, ...
+## $ title              &lt;chr&gt; &quot;Harry Potter and the Half-Blood Prince (Harry P...
+## $ authors            &lt;chr&gt; &quot;J.K. Rowling/Mary GrandPrÃ©&quot;, &quot;J.K. Rowling/Mar...
+## $ average_rating     &lt;chr&gt; &quot;4.57&quot;, &quot;4.49&quot;, &quot;4.42&quot;, &quot;4.56&quot;, &quot;4.78&quot;, &quot;3.74&quot;, ...
+## $ isbn               &lt;chr&gt; &quot;0439785960&quot;, &quot;0439358078&quot;, &quot;0439554896&quot;, &quot;04396...
+## $ isbn13             &lt;chr&gt; &quot;9780439785969&quot;, &quot;9780439358071&quot;, &quot;9780439554893...
+## $ language_code      &lt;chr&gt; &quot;eng&quot;, &quot;eng&quot;, &quot;eng&quot;, &quot;eng&quot;, &quot;eng&quot;, &quot;en-US&quot;, &quot;eng...
+## $ num_pages          &lt;chr&gt; &quot;652&quot;, &quot;870&quot;, &quot;352&quot;, &quot;435&quot;, &quot;2690&quot;, &quot;152&quot;, &quot;3342...
+## $ ratings_count      &lt;int&gt; 2095690, 2153167, 6333, 2339585, 41428, 19, 2824...
+## $ text_reviews_count &lt;int&gt; 27591, 29221, 244, 36325, 164, 1, 808, 254, 4080...
+## $ publication_date   &lt;chr&gt; &quot;9/16/2006&quot;, &quot;9/1/2004&quot;, &quot;11/1/2003&quot;, &quot;5/1/2004&quot;...
+## $ publisher          &lt;chr&gt; &quot;Scholastic Inc.&quot;, &quot;Scholastic Inc.&quot;, &quot;Scholasti...</code></pre>
+<pre class="r"><code>books2 %&gt;% glimpse()</code></pre>
+<pre><code>## Rows: 6,810
+## Columns: 12
+## $ isbn13         &lt;dbl&gt; 9.780002e+12, 9.780002e+12, 9.780006e+12, 9.780006e+...
+## $ isbn10         &lt;chr&gt; &quot;0002005883&quot;, &quot;0002261987&quot;, &quot;0006163831&quot;, &quot;000617873...
+## $ title          &lt;chr&gt; &quot;Gilead&quot;, &quot;Spider&#39;s Web&quot;, &quot;The One Tree&quot;, &quot;Rage of a...
+## $ subtitle       &lt;chr&gt; &quot;&quot;, &quot;A Novel&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;A History of the...
+## $ authors        &lt;chr&gt; &quot;Marilynne Robinson&quot;, &quot;Charles Osborne;Agatha Christ...
+## $ categories     &lt;chr&gt; &quot;Fiction&quot;, &quot;Detective and mystery stories&quot;, &quot;America...
+## $ thumbnail      &lt;chr&gt; &quot;http://books.google.com/books/content?id=KQZCPgAACA...
+## $ description    &lt;chr&gt; &quot;A NOVEL THAT READERS and critics have been eagerly ...
+## $ published_year &lt;int&gt; 2004, 2000, 1982, 1993, 2002, 2002, 1977, 1998, 1994...
+## $ average_rating &lt;dbl&gt; 3.85, 3.83, 3.97, 3.93, 4.15, 4.09, 4.27, 4.41, 4.15...
+## $ num_pages      &lt;int&gt; 247, 241, 479, 512, 170, 176, 560, 608, 743, 489, 50...
+## $ ratings_count  &lt;int&gt; 361, 5164, 172, 29532, 33684, 37569, 3975, 65, 103, ...</code></pre>
+<p>The datasets appears tidy and does not require pivot functions, which will be used to clean up summary statistics later. However, after some more in-depth visual inspection, I have noticed some trends. In particular, some observations (books) seems to have information keyed-in wrong, some field order got scrambled (leaving NAs in one variable and obviously false information in another), some information/columns share the same information, some variables are not the correct type. We fix a variety of small issues below; when all is done, we have lost 5 observations in the first dataset.</p>
+<pre class="r"><code># fix some obvious data issues: Fields with NAs are keyed
+# wrong, for simplicity let&#39;s drop them we also don&#39;t need
+# the bookID field
+books &lt;- books %&gt;% na.omit() %&gt;% select(-bookID)
+
+# in books1, average_rating, num_pages should be dbl and int
+# respectively
+books &lt;- books %&gt;% mutate(average_rating = as.numeric(average_rating), 
+    num_pages = as.numeric(num_pages))
+# Let&#39;s drop the authors and leave only the primary (ie. get
+# rid of all authors after the first &#39;/&#39;)
+books &lt;- books %&gt;% separate(authors, into = &quot;authors&quot;, sep = &quot;/&quot;)
+
+# we need to make isbn13 in books2 a character vector
+books2 &lt;- books2 %&gt;% mutate(isbn13 = as.character(isbn13))
+# we should drop the shared description columns in books2: no
+# good way to combine
+books2 &lt;- books2 %&gt;% select(-c(&quot;title&quot;, &quot;authors&quot;, &quot;published_year&quot;))</code></pre>
+<pre class="r"><code># dataset seems tidely now, but let&#39;s make sure let&#39;s
+# investigate if each book (observation) is uniquely
+# identified by ISBN10 and ISBN13 in each dataset
+books %&gt;% select(isbn, isbn13) %&gt;% summarize_all(n_distinct)</code></pre>
+<pre><code>##    isbn isbn13
+## 1 11126  11127</code></pre>
+<pre class="r"><code>books2 %&gt;% select(isbn10, isbn13) %&gt;% summarize_all(n_distinct)</code></pre>
+<pre><code>##   isbn10 isbn13
+## 1   6810   6810</code></pre>
+<pre class="r"><code># we note that books2 is tidy, where all books have an unique
+# isbn10 and isbn13 However, there seems to be a duplicate in
+# books1?  we simply excluded that one
+books &lt;- books %&gt;% filter(!duplicated(isbn))</code></pre>
+</div>
+<div id="joiningmerging" class="section level3">
+<h3>Joining/Merging</h3>
+<p>After contemplation, I have decided to perform an inner join. For one, the second dataset is an extension of the first, which means that we should obtain a fairly large amount of shared observations (5686 total). This way, we also don’t have to worry about managing possible NAs in our merged dataset. The problem comes when deciding the which columns to merge on, again given that the two datasets shares a decent amount of similar variables (ie. authors, isbn, title, average_rating, num_pages, ratings_count). In fact, values in these shared columns aren’t exactly the same, and so I have selected only the isbn columns (isbn=isbn10, isbn13) to merge on since that’s the universal convention to uniquely identify a book.</p>
+<pre class="r"><code># we can now join our dataset!
+merged_books &lt;- books %&gt;% inner_join(books2, convert = T, by = c(isbn = &quot;isbn10&quot;, 
+    isbn13 = &quot;isbn13&quot;))
+merged_books %&gt;% glimpse()</code></pre>
+<pre><code>## Rows: 5,686
+## Columns: 18
+## $ title              &lt;chr&gt; &quot;Harry Potter and the Half-Blood Prince (Harry P...
+## $ authors            &lt;chr&gt; &quot;J.K. Rowling&quot;, &quot;J.K. Rowling&quot;, &quot;J.K. Rowling&quot;, ...
+## $ average_rating.x   &lt;dbl&gt; 4.57, 4.49, 4.42, 4.56, 4.78, 3.74, 4.73, 4.38, ...
+## $ isbn               &lt;chr&gt; &quot;0439785960&quot;, &quot;0439358078&quot;, &quot;0439554896&quot;, &quot;04396...
+## $ isbn13             &lt;chr&gt; &quot;9780439785969&quot;, &quot;9780439358071&quot;, &quot;9780439554893...
+## $ language_code      &lt;chr&gt; &quot;eng&quot;, &quot;eng&quot;, &quot;eng&quot;, &quot;eng&quot;, &quot;eng&quot;, &quot;en-US&quot;, &quot;eng...
+## $ num_pages.x        &lt;dbl&gt; 652, 870, 352, 435, 2690, 152, 3342, 815, 215, 8...
+## $ ratings_count.x    &lt;int&gt; 2095690, 2153167, 6333, 2339585, 41428, 19, 2824...
+## $ text_reviews_count &lt;int&gt; 27591, 29221, 244, 36325, 164, 1, 808, 4080, 460...
+## $ publication_date   &lt;chr&gt; &quot;9/16/2006&quot;, &quot;9/1/2004&quot;, &quot;11/1/2003&quot;, &quot;5/1/2004&quot;...
+## $ publisher          &lt;chr&gt; &quot;Scholastic Inc.&quot;, &quot;Scholastic Inc.&quot;, &quot;Scholasti...
+## $ subtitle           &lt;chr&gt; &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;5 Years of Magic, Adventure, an...
+## $ categories         &lt;chr&gt; &quot;Juvenile Fiction&quot;, &quot;Juvenile Fiction&quot;, &quot;Juvenil...
+## $ thumbnail          &lt;chr&gt; &quot;http://books.google.com/books/content?id=QzI0Bg...
+## $ description        &lt;chr&gt; &quot;When Harry Potter and the Half-Blood Prince ope...
+## $ average_rating.y   &lt;dbl&gt; 4.56, 4.49, 4.41, 4.55, 4.78, 3.69, 4.73, 4.38, ...
+## $ num_pages.y        &lt;int&gt; 652, 870, 352, 435, 2690, 152, 3342, 815, 215, 8...
+## $ ratings_count.y    &lt;int&gt; 1944099, 1996446, 6267, 2149872, 38872, 18, 2741...</code></pre>
+<p>After joining, we lost about 5440 (about half) observations. This could mean that we have lost some levels of our categorical variables (ie. we no longer have non-english books), but it turns out it’s not a big problem given that our categorical data has many levels.</p>
+<p>To simplify information, I have decided that for the shared character variables (ie. title, author, published_year which can be derived from date), to simply keep the first dataset’s information and drop the same columns in the second dataset, since they describe the same information and there’s really no good way to combine the information together somehow. For the shared numerical variables (ie. average_rating, num_pages, ratings_count), I have decided to take an average of them after joining, and then deleting both the original columns.</p>
+<pre class="r"><code># we now create a new column as the ceiled average of the two
+# .x and .y columns besides average_rating, which should be
+# continuous anyways
+merged_books &lt;- merged_books %&gt;% mutate(average_rating = (average_rating.x + 
+    average_rating.y)/2, num_pages = ceiling((num_pages.x + num_pages.y)/2), 
+    ratings_count = ceiling((ratings_count.x + ratings_count.y)/2))
+
+# we can now drop the .x and .y columns all together
+merged_books &lt;- merged_books %&gt;% select(-(contains(&quot;.&quot;)))
+
+# finally, move some columns around for easy viewing!
+merged_books &lt;- merged_books %&gt;% relocate(title, authors, average_rating, 
+    ratings_count, num_pages, language_code, categories, isbn, 
+    isbn13)
+
+merged_books %&gt;% glimpse()</code></pre>
+<pre><code>## Rows: 5,686
+## Columns: 15
+## $ title              &lt;chr&gt; &quot;Harry Potter and the Half-Blood Prince (Harry P...
+## $ authors            &lt;chr&gt; &quot;J.K. Rowling&quot;, &quot;J.K. Rowling&quot;, &quot;J.K. Rowling&quot;, ...
+## $ average_rating     &lt;dbl&gt; 4.565, 4.490, 4.415, 4.555, 4.780, 3.715, 4.730,...
+## $ ratings_count      &lt;dbl&gt; 2019895, 2074807, 6300, 2244729, 40150, 19, 2782...
+## $ num_pages          &lt;dbl&gt; 652, 870, 352, 435, 2690, 152, 3342, 815, 215, 8...
+## $ language_code      &lt;chr&gt; &quot;eng&quot;, &quot;eng&quot;, &quot;eng&quot;, &quot;eng&quot;, &quot;eng&quot;, &quot;en-US&quot;, &quot;eng...
+## $ categories         &lt;chr&gt; &quot;Juvenile Fiction&quot;, &quot;Juvenile Fiction&quot;, &quot;Juvenil...
+## $ isbn               &lt;chr&gt; &quot;0439785960&quot;, &quot;0439358078&quot;, &quot;0439554896&quot;, &quot;04396...
+## $ isbn13             &lt;chr&gt; &quot;9780439785969&quot;, &quot;9780439358071&quot;, &quot;9780439554893...
+## $ text_reviews_count &lt;int&gt; 27591, 29221, 244, 36325, 164, 1, 808, 4080, 460...
+## $ publication_date   &lt;chr&gt; &quot;9/16/2006&quot;, &quot;9/1/2004&quot;, &quot;11/1/2003&quot;, &quot;5/1/2004&quot;...
+## $ publisher          &lt;chr&gt; &quot;Scholastic Inc.&quot;, &quot;Scholastic Inc.&quot;, &quot;Scholasti...
+## $ subtitle           &lt;chr&gt; &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;5 Years of Magic, Adventure, an...
+## $ thumbnail          &lt;chr&gt; &quot;http://books.google.com/books/content?id=QzI0Bg...
+## $ description        &lt;chr&gt; &quot;When Harry Potter and the Half-Blood Prince ope...</code></pre>
+</div>
+<div id="wrangling" class="section level3">
+<h3>Wrangling</h3>
+<pre class="r"><code>library(gt)  # tables
+# time for some exploration!  We can first separate
+# publication date into month, day, year new columns
+merged_books &lt;- merged_books %&gt;% separate(publication_date, into = c(&quot;month&quot;, 
+    &quot;day&quot;, &quot;year&quot;))
+merged_books %&gt;% glimpse()</code></pre>
+<pre><code>## Rows: 5,686
+## Columns: 17
+## $ title              &lt;chr&gt; &quot;Harry Potter and the Half-Blood Prince (Harry P...
+## $ authors            &lt;chr&gt; &quot;J.K. Rowling&quot;, &quot;J.K. Rowling&quot;, &quot;J.K. Rowling&quot;, ...
+## $ average_rating     &lt;dbl&gt; 4.565, 4.490, 4.415, 4.555, 4.780, 3.715, 4.730,...
+## $ ratings_count      &lt;dbl&gt; 2019895, 2074807, 6300, 2244729, 40150, 19, 2782...
+## $ num_pages          &lt;dbl&gt; 652, 870, 352, 435, 2690, 152, 3342, 815, 215, 8...
+## $ language_code      &lt;chr&gt; &quot;eng&quot;, &quot;eng&quot;, &quot;eng&quot;, &quot;eng&quot;, &quot;eng&quot;, &quot;en-US&quot;, &quot;eng...
+## $ categories         &lt;chr&gt; &quot;Juvenile Fiction&quot;, &quot;Juvenile Fiction&quot;, &quot;Juvenil...
+## $ isbn               &lt;chr&gt; &quot;0439785960&quot;, &quot;0439358078&quot;, &quot;0439554896&quot;, &quot;04396...
+## $ isbn13             &lt;chr&gt; &quot;9780439785969&quot;, &quot;9780439358071&quot;, &quot;9780439554893...
+## $ text_reviews_count &lt;int&gt; 27591, 29221, 244, 36325, 164, 1, 808, 4080, 460...
+## $ month              &lt;chr&gt; &quot;9&quot;, &quot;9&quot;, &quot;11&quot;, &quot;5&quot;, &quot;9&quot;, &quot;4&quot;, &quot;9&quot;, &quot;4&quot;, &quot;8&quot;, &quot;1...
+## $ day                &lt;chr&gt; &quot;16&quot;, &quot;1&quot;, &quot;1&quot;, &quot;1&quot;, &quot;13&quot;, &quot;26&quot;, &quot;12&quot;, &quot;30&quot;, &quot;3&quot;...
+## $ year               &lt;chr&gt; &quot;2006&quot;, &quot;2004&quot;, &quot;2003&quot;, &quot;2004&quot;, &quot;2004&quot;, &quot;2005&quot;, ...
+## $ publisher          &lt;chr&gt; &quot;Scholastic Inc.&quot;, &quot;Scholastic Inc.&quot;, &quot;Scholasti...
+## $ subtitle           &lt;chr&gt; &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;5 Years of Magic, Adventure, an...
+## $ thumbnail          &lt;chr&gt; &quot;http://books.google.com/books/content?id=QzI0Bg...
+## $ description        &lt;chr&gt; &quot;When Harry Potter and the Half-Blood Prince ope...</code></pre>
+<pre class="r"><code># which book has the highest average_rating with more than
+# 100 ratings? Calvin and Hobbes!
+merged_books %&gt;% filter(ratings_count &gt;= 100) %&gt;% arrange(desc(average_rating)) %&gt;% 
+    select(title) %&gt;% slice(1) %&gt;% .$title</code></pre>
+<pre><code>## [1] &quot;The Complete Calvin and Hobbes&quot;</code></pre>
+<pre class="r"><code># which book from J.K. Rowling has the highest rating? A set
+# of Harry Potter series!
+merged_books %&gt;% filter(str_detect(authors, &quot;J.K. Rowling&quot;)) %&gt;% 
+    arrange(desc(average_rating)) %&gt;% slice(1) %&gt;% .$title</code></pre>
+<pre><code>## [1] &quot;Harry Potter Boxed Set  Books 1-5 (Harry Potter  #1-5)&quot;</code></pre>
+<p>The Complete Calvin and Hobbes seems to be the best rated book with more than 100 ratings (a childhood classics!). The highest rated title from J.K. Rowling is the Harry Potter series, no surprises here!</p>
+<pre class="r"><code># show the correlation matrix between numerical variables
+# Interpretation can be found under the visualization section
+cor_matrix &lt;- merged_books %&gt;% select(is.numeric) %&gt;% cor() %&gt;% 
+    round(3)
+colnames(cor_matrix) %&gt;% cbind(cor_matrix) %&gt;% as.data.frame %&gt;% 
+    gt()</code></pre>
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#ssfofidaix .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#ssfofidaix .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#ssfofidaix .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#ssfofidaix .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 4px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#ssfofidaix .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ssfofidaix .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#ssfofidaix .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#ssfofidaix .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#ssfofidaix .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#ssfofidaix .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#ssfofidaix .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#ssfofidaix .gt_group_heading {
+  padding: 8px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#ssfofidaix .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#ssfofidaix .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#ssfofidaix .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#ssfofidaix .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#ssfofidaix .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 12px;
+}
+
+#ssfofidaix .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ssfofidaix .gt_first_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+}
+
+#ssfofidaix .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ssfofidaix .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#ssfofidaix .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#ssfofidaix .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ssfofidaix .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#ssfofidaix .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding: 4px;
+}
+
+#ssfofidaix .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#ssfofidaix .gt_sourcenote {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#ssfofidaix .gt_left {
+  text-align: left;
+}
+
+#ssfofidaix .gt_center {
+  text-align: center;
+}
+
+#ssfofidaix .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#ssfofidaix .gt_font_normal {
+  font-weight: normal;
+}
+
+#ssfofidaix .gt_font_bold {
+  font-weight: bold;
+}
+
+#ssfofidaix .gt_font_italic {
+  font-style: italic;
+}
+
+#ssfofidaix .gt_super {
+  font-size: 65%;
+}
+
+#ssfofidaix .gt_footnote_marks {
+  font-style: italic;
+  font-size: 65%;
+}
+</style>
+<div id="ssfofidaix" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">.</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">average_rating</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">ratings_count</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">num_pages</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">text_reviews_count</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr>
+      <td class="gt_row gt_left">average_rating</td>
+      <td class="gt_row gt_left">1</td>
+      <td class="gt_row gt_left">0.043</td>
+      <td class="gt_row gt_left">0.18</td>
+      <td class="gt_row gt_left">0.037</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">ratings_count</td>
+      <td class="gt_row gt_left">0.043</td>
+      <td class="gt_row gt_left">1</td>
+      <td class="gt_row gt_left">0.041</td>
+      <td class="gt_row gt_left">0.876</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">num_pages</td>
+      <td class="gt_row gt_left">0.18</td>
+      <td class="gt_row gt_left">0.041</td>
+      <td class="gt_row gt_left">1</td>
+      <td class="gt_row gt_left">0.04</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">text_reviews_count</td>
+      <td class="gt_row gt_left">0.037</td>
+      <td class="gt_row gt_left">0.876</td>
+      <td class="gt_row gt_left">0.04</td>
+      <td class="gt_row gt_left">1</td>
+    </tr>
+  </tbody>
+  
+  
+</table></div>
+<pre class="r"><code># show some number of distinct for non-numerical variables
+merged_books %&gt;% select(is.character) %&gt;% dplyr::summarise_all(.funs = list(.distinct = n_distinct)) %&gt;% 
+    pivot_longer(everything(), names_to = &quot;variables&quot;, values_to = &quot;distinct_count&quot;) %&gt;% 
+    separate(variables, into = c(&quot;variable&quot;), sep = &quot;_\\.&quot;) %&gt;% 
+    gt()</code></pre>
+<p><style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#yjhojspemv .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#yjhojspemv .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#yjhojspemv .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#yjhojspemv .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 4px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#yjhojspemv .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#yjhojspemv .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#yjhojspemv .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#yjhojspemv .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#yjhojspemv .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#yjhojspemv .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#yjhojspemv .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#yjhojspemv .gt_group_heading {
+  padding: 8px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#yjhojspemv .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#yjhojspemv .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#yjhojspemv .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#yjhojspemv .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#yjhojspemv .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 12px;
+}
+
+#yjhojspemv .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#yjhojspemv .gt_first_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+}
+
+#yjhojspemv .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#yjhojspemv .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#yjhojspemv .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#yjhojspemv .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#yjhojspemv .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#yjhojspemv .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding: 4px;
+}
+
+#yjhojspemv .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#yjhojspemv .gt_sourcenote {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#yjhojspemv .gt_left {
+  text-align: left;
+}
+
+#yjhojspemv .gt_center {
+  text-align: center;
+}
+
+#yjhojspemv .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#yjhojspemv .gt_font_normal {
+  font-weight: normal;
+}
+
+#yjhojspemv .gt_font_bold {
+  font-weight: bold;
+}
+
+#yjhojspemv .gt_font_italic {
+  font-style: italic;
+}
+
+#yjhojspemv .gt_super {
+  font-size: 65%;
+}
+
+#yjhojspemv .gt_footnote_marks {
+  font-style: italic;
+  font-size: 65%;
+}
+</style>
+<div id="yjhojspemv" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">variable</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">distinct_count</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr>
+      <td class="gt_row gt_left">title</td>
+      <td class="gt_row gt_center">5528</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">authors</td>
+      <td class="gt_row gt_center">2843</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">language_code</td>
+      <td class="gt_row gt_center">5</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">categories</td>
+      <td class="gt_row gt_center">406</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">isbn</td>
+      <td class="gt_row gt_center">5686</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">isbn13</td>
+      <td class="gt_row gt_center">5686</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">month</td>
+      <td class="gt_row gt_center">12</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">day</td>
+      <td class="gt_row gt_center">31</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">year</td>
+      <td class="gt_row gt_center">77</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">publisher</td>
+      <td class="gt_row gt_center">1373</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">subtitle</td>
+      <td class="gt_row gt_center">1767</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">thumbnail</td>
+      <td class="gt_row gt_center">5474</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">description</td>
+      <td class="gt_row gt_center">5478</td>
+    </tr>
+  </tbody>
+  
+  
+</table></div>
+Expectedly, we have 12 unique values for month (1-12) and day (1-31). However, we see that even though each book has an unique isbn and isbn13, there are some duplicated titles (most likely different versions/reprints). We have only 5 language codes, which indicates that many were lost when we admitted all NA entries. The thumbnail and description are largely unique, while there’s also a surprising amount of unique publishers and categories.</p>
+<pre class="r"><code># calculate summary stats, no groups (mean, sd, var,
+# quantile, min, max)
+summary_stat &lt;- merged_books %&gt;% select(is.numeric) %&gt;% summarize_all(.funs = list(.mean = mean, 
+    .sd = sd, .var = var, .median = median, .min = min, .max = max), 
+    na.rm = T)
+
+# we should now clean up summary_stat using pivot functions:
+# we first stuff all stats into a column with their values we
+# then separate out the statistics from their variable into
+# their own column finally, we make a separate column per
+# stat function for table viewing
+summary_stat %&gt;% round(3) %&gt;% pivot_longer(everything(), names_to = &quot;variables&quot;, 
+    values_to = &quot;values&quot;) %&gt;% separate(variables, into = c(&quot;variable&quot;, 
+    &quot;stat&quot;), sep = &quot;_\\.&quot;) %&gt;% pivot_wider(names_from = &quot;stat&quot;, 
+    values_from = &quot;values&quot;) %&gt;% gt()</code></pre>
+<p><style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#gtfmjvwafb .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#gtfmjvwafb .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#gtfmjvwafb .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#gtfmjvwafb .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 4px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#gtfmjvwafb .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#gtfmjvwafb .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#gtfmjvwafb .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#gtfmjvwafb .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#gtfmjvwafb .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#gtfmjvwafb .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#gtfmjvwafb .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#gtfmjvwafb .gt_group_heading {
+  padding: 8px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#gtfmjvwafb .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#gtfmjvwafb .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#gtfmjvwafb .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#gtfmjvwafb .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#gtfmjvwafb .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 12px;
+}
+
+#gtfmjvwafb .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#gtfmjvwafb .gt_first_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+}
+
+#gtfmjvwafb .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#gtfmjvwafb .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#gtfmjvwafb .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#gtfmjvwafb .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#gtfmjvwafb .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#gtfmjvwafb .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding: 4px;
+}
+
+#gtfmjvwafb .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#gtfmjvwafb .gt_sourcenote {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#gtfmjvwafb .gt_left {
+  text-align: left;
+}
+
+#gtfmjvwafb .gt_center {
+  text-align: center;
+}
+
+#gtfmjvwafb .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#gtfmjvwafb .gt_font_normal {
+  font-weight: normal;
+}
+
+#gtfmjvwafb .gt_font_bold {
+  font-weight: bold;
+}
+
+#gtfmjvwafb .gt_font_italic {
+  font-style: italic;
+}
+
+#gtfmjvwafb .gt_super {
+  font-size: 65%;
+}
+
+#gtfmjvwafb .gt_footnote_marks {
+  font-style: italic;
+  font-size: 65%;
+}
+</style>
+<div id="gtfmjvwafb" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">variable</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">mean</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">sd</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">var</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">median</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">min</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">max</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr>
+      <td class="gt_row gt_left">average_rating</td>
+      <td class="gt_row gt_right">3.935</td>
+      <td class="gt_row gt_right">0.329</td>
+      <td class="gt_row gt_right">1.080000e-01</td>
+      <td class="gt_row gt_right">3.96</td>
+      <td class="gt_row gt_right">0</td>
+      <td class="gt_row gt_right">5</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">ratings_count</td>
+      <td class="gt_row gt_right">20125.570</td>
+      <td class="gt_row gt_right">128461.947</td>
+      <td class="gt_row gt_right">1.650247e+10</td>
+      <td class="gt_row gt_right">1031.50</td>
+      <td class="gt_row gt_right">0</td>
+      <td class="gt_row gt_right">4482504</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">num_pages</td>
+      <td class="gt_row gt_right">343.568</td>
+      <td class="gt_row gt_right">230.518</td>
+      <td class="gt_row gt_right">5.313871e+04</td>
+      <td class="gt_row gt_right">304.00</td>
+      <td class="gt_row gt_right">0</td>
+      <td class="gt_row gt_right">3342</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">text_reviews_count</td>
+      <td class="gt_row gt_right">617.817</td>
+      <td class="gt_row gt_right">2889.346</td>
+      <td class="gt_row gt_right">8.348322e+06</td>
+      <td class="gt_row gt_right">60.00</td>
+      <td class="gt_row gt_right">0</td>
+      <td class="gt_row gt_right">94265</td>
+    </tr>
+  </tbody>
+  
+  
+</table></div>
+On average, our merged dataset has a relative high average_rating at ~4, and given that sd = 0.329, that means 95% of our titles has an average_rating [3.4, 4.6], or “above average” rating. The average_rating median is very similar to the mean, which indicates that there’s no extreme outliers pulling the mean (given the restricted range 0-5). The min and max logically follows as 0 and 5. The other metrics in contrast has relatively a much larger spread and often conflicting mean and median values, indicative of outliers (ie. very long/popular books). Thus, we cannot make generalizations as easily.</p>
+<pre class="r"><code># calculate summary stats, group by language_code
+summary_stat_lang &lt;- merged_books %&gt;% group_by(language_code) %&gt;% 
+    select(is.numeric) %&gt;% summarize_all(.funs = list(.mean = mean, 
+    .sd = sd, .var = var, .median = median, .min = min, .max = max))
+
+# we should now clean up summary_stat_lang
+summary_stat_lang %&gt;% pivot_longer(is.numeric, names_to = &quot;variables&quot;, 
+    values_to = &quot;values&quot;) %&gt;% separate(variables, into = c(&quot;variable&quot;, 
+    &quot;stat&quot;), sep = &quot;_\\.&quot;) %&gt;% pivot_wider(names_from = &quot;stat&quot;, 
+    values_from = &quot;values&quot;) %&gt;% mutate_if(is.numeric, round, 
+    3) %&gt;% gt()</code></pre>
+<p><style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#qyirycvmbj .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#qyirycvmbj .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#qyirycvmbj .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#qyirycvmbj .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 4px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#qyirycvmbj .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#qyirycvmbj .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#qyirycvmbj .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#qyirycvmbj .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#qyirycvmbj .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#qyirycvmbj .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#qyirycvmbj .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#qyirycvmbj .gt_group_heading {
+  padding: 8px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#qyirycvmbj .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#qyirycvmbj .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#qyirycvmbj .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#qyirycvmbj .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#qyirycvmbj .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 12px;
+}
+
+#qyirycvmbj .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#qyirycvmbj .gt_first_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+}
+
+#qyirycvmbj .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#qyirycvmbj .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#qyirycvmbj .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#qyirycvmbj .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#qyirycvmbj .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#qyirycvmbj .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding: 4px;
+}
+
+#qyirycvmbj .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#qyirycvmbj .gt_sourcenote {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#qyirycvmbj .gt_left {
+  text-align: left;
+}
+
+#qyirycvmbj .gt_center {
+  text-align: center;
+}
+
+#qyirycvmbj .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#qyirycvmbj .gt_font_normal {
+  font-weight: normal;
+}
+
+#qyirycvmbj .gt_font_bold {
+  font-weight: bold;
+}
+
+#qyirycvmbj .gt_font_italic {
+  font-style: italic;
+}
+
+#qyirycvmbj .gt_super {
+  font-size: 65%;
+}
+
+#qyirycvmbj .gt_footnote_marks {
+  font-style: italic;
+  font-size: 65%;
+}
+</style>
+<div id="qyirycvmbj" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">language_code</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">variable</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">mean</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">sd</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">var</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">median</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">min</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">max</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr>
+      <td class="gt_row gt_left">en-CA</td>
+      <td class="gt_row gt_left">average_rating</td>
+      <td class="gt_row gt_right">4.091</td>
+      <td class="gt_row gt_right">0.120</td>
+      <td class="gt_row gt_right">1.400000e-02</td>
+      <td class="gt_row gt_right">4.105</td>
+      <td class="gt_row gt_right">3.945</td>
+      <td class="gt_row gt_right">4.210</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">en-CA</td>
+      <td class="gt_row gt_left">ratings_count</td>
+      <td class="gt_row gt_right">4119.250</td>
+      <td class="gt_row gt_right">1434.519</td>
+      <td class="gt_row gt_right">2.057846e+06</td>
+      <td class="gt_row gt_right">4661.500</td>
+      <td class="gt_row gt_right">2043.000</td>
+      <td class="gt_row gt_right">5111.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">en-CA</td>
+      <td class="gt_row gt_left">num_pages</td>
+      <td class="gt_row gt_right">223.750</td>
+      <td class="gt_row gt_right">43.531</td>
+      <td class="gt_row gt_right">1.894917e+03</td>
+      <td class="gt_row gt_right">239.500</td>
+      <td class="gt_row gt_right">160.000</td>
+      <td class="gt_row gt_right">256.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">en-CA</td>
+      <td class="gt_row gt_left">text_reviews_count</td>
+      <td class="gt_row gt_right">298.750</td>
+      <td class="gt_row gt_right">163.732</td>
+      <td class="gt_row gt_right">2.680825e+04</td>
+      <td class="gt_row gt_right">267.000</td>
+      <td class="gt_row gt_right">155.000</td>
+      <td class="gt_row gt_right">506.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">en-GB</td>
+      <td class="gt_row gt_left">average_rating</td>
+      <td class="gt_row gt_right">3.915</td>
+      <td class="gt_row gt_right">0.299</td>
+      <td class="gt_row gt_right">9.000000e-02</td>
+      <td class="gt_row gt_right">3.940</td>
+      <td class="gt_row gt_right">2.670</td>
+      <td class="gt_row gt_right">4.535</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">en-GB</td>
+      <td class="gt_row gt_left">ratings_count</td>
+      <td class="gt_row gt_right">2838.202</td>
+      <td class="gt_row gt_right">11426.034</td>
+      <td class="gt_row gt_right">1.305543e+08</td>
+      <td class="gt_row gt_right">203.500</td>
+      <td class="gt_row gt_right">3.000</td>
+      <td class="gt_row gt_right">100729.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">en-GB</td>
+      <td class="gt_row gt_left">num_pages</td>
+      <td class="gt_row gt_right">323.070</td>
+      <td class="gt_row gt_right">211.776</td>
+      <td class="gt_row gt_right">4.484897e+04</td>
+      <td class="gt_row gt_right">284.500</td>
+      <td class="gt_row gt_right">32.000</td>
+      <td class="gt_row gt_right">1262.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">en-GB</td>
+      <td class="gt_row gt_left">text_reviews_count</td>
+      <td class="gt_row gt_right">121.746</td>
+      <td class="gt_row gt_right">396.289</td>
+      <td class="gt_row gt_right">1.570449e+05</td>
+      <td class="gt_row gt_right">15.000</td>
+      <td class="gt_row gt_right">0.000</td>
+      <td class="gt_row gt_right">3838.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">en-US</td>
+      <td class="gt_row gt_left">average_rating</td>
+      <td class="gt_row gt_right">3.919</td>
+      <td class="gt_row gt_right">0.281</td>
+      <td class="gt_row gt_right">7.900000e-02</td>
+      <td class="gt_row gt_right">3.950</td>
+      <td class="gt_row gt_right">2.670</td>
+      <td class="gt_row gt_right">4.880</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">en-US</td>
+      <td class="gt_row gt_left">ratings_count</td>
+      <td class="gt_row gt_right">3997.590</td>
+      <td class="gt_row gt_right">12032.907</td>
+      <td class="gt_row gt_right">1.447909e+08</td>
+      <td class="gt_row gt_right">618.000</td>
+      <td class="gt_row gt_right">2.000</td>
+      <td class="gt_row gt_right">189065.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">en-US</td>
+      <td class="gt_row gt_left">num_pages</td>
+      <td class="gt_row gt_right">336.759</td>
+      <td class="gt_row gt_right">225.169</td>
+      <td class="gt_row gt_right">5.070120e+04</td>
+      <td class="gt_row gt_right">307.000</td>
+      <td class="gt_row gt_right">24.000</td>
+      <td class="gt_row gt_right">2480.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">en-US</td>
+      <td class="gt_row gt_left">text_reviews_count</td>
+      <td class="gt_row gt_right">174.386</td>
+      <td class="gt_row gt_right">475.223</td>
+      <td class="gt_row gt_right">2.258366e+05</td>
+      <td class="gt_row gt_right">38.000</td>
+      <td class="gt_row gt_right">0.000</td>
+      <td class="gt_row gt_right">6599.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">eng</td>
+      <td class="gt_row gt_left">average_rating</td>
+      <td class="gt_row gt_right">3.938</td>
+      <td class="gt_row gt_right">0.337</td>
+      <td class="gt_row gt_right">1.140000e-01</td>
+      <td class="gt_row gt_right">3.960</td>
+      <td class="gt_row gt_right">0.000</td>
+      <td class="gt_row gt_right">5.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">eng</td>
+      <td class="gt_row gt_left">ratings_count</td>
+      <td class="gt_row gt_right">23255.991</td>
+      <td class="gt_row gt_right">139957.894</td>
+      <td class="gt_row gt_right">1.958821e+10</td>
+      <td class="gt_row gt_right">1183.000</td>
+      <td class="gt_row gt_right">0.000</td>
+      <td class="gt_row gt_right">4482504.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">eng</td>
+      <td class="gt_row gt_left">num_pages</td>
+      <td class="gt_row gt_right">345.233</td>
+      <td class="gt_row gt_right">231.921</td>
+      <td class="gt_row gt_right">5.378729e+04</td>
+      <td class="gt_row gt_right">304.000</td>
+      <td class="gt_row gt_right">0.000</td>
+      <td class="gt_row gt_right">3342.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">eng</td>
+      <td class="gt_row gt_left">text_reviews_count</td>
+      <td class="gt_row gt_right">704.307</td>
+      <td class="gt_row gt_right">3141.016</td>
+      <td class="gt_row gt_right">9.865984e+06</td>
+      <td class="gt_row gt_right">67.000</td>
+      <td class="gt_row gt_right">0.000</td>
+      <td class="gt_row gt_right">94265.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">mul</td>
+      <td class="gt_row gt_left">average_rating</td>
+      <td class="gt_row gt_right">4.235</td>
+      <td class="gt_row gt_right">0.332</td>
+      <td class="gt_row gt_right">1.100000e-01</td>
+      <td class="gt_row gt_right">4.235</td>
+      <td class="gt_row gt_right">4.000</td>
+      <td class="gt_row gt_right">4.470</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">mul</td>
+      <td class="gt_row gt_left">ratings_count</td>
+      <td class="gt_row gt_right">29.000</td>
+      <td class="gt_row gt_right">1.414</td>
+      <td class="gt_row gt_right">2.000000e+00</td>
+      <td class="gt_row gt_right">29.000</td>
+      <td class="gt_row gt_right">28.000</td>
+      <td class="gt_row gt_right">30.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">mul</td>
+      <td class="gt_row gt_left">num_pages</td>
+      <td class="gt_row gt_right">496.000</td>
+      <td class="gt_row gt_right">45.255</td>
+      <td class="gt_row gt_right">2.048000e+03</td>
+      <td class="gt_row gt_right">496.000</td>
+      <td class="gt_row gt_right">464.000</td>
+      <td class="gt_row gt_right">528.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">mul</td>
+      <td class="gt_row gt_left">text_reviews_count</td>
+      <td class="gt_row gt_right">3.000</td>
+      <td class="gt_row gt_right">1.414</td>
+      <td class="gt_row gt_right">2.000000e+00</td>
+      <td class="gt_row gt_right">3.000</td>
+      <td class="gt_row gt_right">2.000</td>
+      <td class="gt_row gt_right">4.000</td>
+    </tr>
+  </tbody>
+  
+  
+</table></div>
+When categorized by language codes, our metric trends follows from both. However, we note that the multilingual books in particular has a higher average_rating and much smaller ratings_count/text_reviews_count compared to the other english books. This is probably first due to its smaller sample size compared to other english books as well as the fact that it requires substantial knowledge to read and review books in a different language, but they are often of high quality given the substantial translation work behind.</p>
+<pre class="r"><code># calculate summary stats, group by authors and language
+# codes notice there are too many authors, how about we just
+# choose 3 of my favorites authors!
+summary_stat_auth_lang &lt;- merged_books %&gt;% filter(authors %in% 
+    c(&quot;Stephen King&quot;, &quot;J.K. Rowling&quot;, &quot;Ovid&quot;)) %&gt;% group_by(authors, 
+    language_code) %&gt;% select(is.numeric) %&gt;% summarize_all(.funs = list(.mean = mean, 
+    .sd = sd, .var = var, .median = median, .min = min, .max = max))
+
+# we should now clean up summary_stat_auth_lang
+summary_stat_auth_lang %&gt;% pivot_longer(is.numeric, names_to = &quot;variables&quot;, 
+    values_to = &quot;values&quot;) %&gt;% separate(variables, into = c(&quot;variable&quot;, 
+    &quot;stat&quot;), sep = &quot;_\\.&quot;) %&gt;% pivot_wider(names_from = &quot;stat&quot;, 
+    values_from = &quot;values&quot;) %&gt;% mutate_if(is.numeric, round, 
+    3) %&gt;% gt()</code></pre>
+<p><style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#nwezbaqzfi .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#nwezbaqzfi .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#nwezbaqzfi .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#nwezbaqzfi .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 4px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#nwezbaqzfi .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#nwezbaqzfi .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#nwezbaqzfi .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#nwezbaqzfi .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#nwezbaqzfi .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#nwezbaqzfi .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#nwezbaqzfi .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#nwezbaqzfi .gt_group_heading {
+  padding: 8px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#nwezbaqzfi .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#nwezbaqzfi .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#nwezbaqzfi .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#nwezbaqzfi .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#nwezbaqzfi .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 12px;
+}
+
+#nwezbaqzfi .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nwezbaqzfi .gt_first_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+}
+
+#nwezbaqzfi .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nwezbaqzfi .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#nwezbaqzfi .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#nwezbaqzfi .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#nwezbaqzfi .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#nwezbaqzfi .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding: 4px;
+}
+
+#nwezbaqzfi .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#nwezbaqzfi .gt_sourcenote {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#nwezbaqzfi .gt_left {
+  text-align: left;
+}
+
+#nwezbaqzfi .gt_center {
+  text-align: center;
+}
+
+#nwezbaqzfi .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#nwezbaqzfi .gt_font_normal {
+  font-weight: normal;
+}
+
+#nwezbaqzfi .gt_font_bold {
+  font-weight: bold;
+}
+
+#nwezbaqzfi .gt_font_italic {
+  font-style: italic;
+}
+
+#nwezbaqzfi .gt_super {
+  font-size: 65%;
+}
+
+#nwezbaqzfi .gt_footnote_marks {
+  font-style: italic;
+  font-size: 65%;
+}
+</style>
+<div id="nwezbaqzfi" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">language_code</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">variable</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">mean</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">sd</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">var</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">median</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">min</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">max</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr class="gt_group_heading_row">
+      <td colspan="8" class="gt_group_heading">J.K. Rowling</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">eng</td>
+      <td class="gt_row gt_left">average_rating</td>
+      <td class="gt_row gt_right">4.546</td>
+      <td class="gt_row gt_right">0.128</td>
+      <td class="gt_row gt_right">1.600000e-02</td>
+      <td class="gt_row gt_right">4.555</td>
+      <td class="gt_row gt_right">4.400</td>
+      <td class="gt_row gt_right">4.780</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">eng</td>
+      <td class="gt_row gt_left">ratings_count</td>
+      <td class="gt_row gt_right">865151.200</td>
+      <td class="gt_row gt_right">1095578.454</td>
+      <td class="gt_row gt_right">1.200292e+12</td>
+      <td class="gt_row gt_right">33988.000</td>
+      <td class="gt_row gt_right">3129.000</td>
+      <td class="gt_row gt_right">2244729.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">eng</td>
+      <td class="gt_row gt_left">num_pages</td>
+      <td class="gt_row gt_right">1003.800</td>
+      <td class="gt_row gt_right">1086.934</td>
+      <td class="gt_row gt_right">1.181426e+06</td>
+      <td class="gt_row gt_right">558.000</td>
+      <td class="gt_row gt_right">240.000</td>
+      <td class="gt_row gt_right">3342.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">eng</td>
+      <td class="gt_row gt_left">text_reviews_count</td>
+      <td class="gt_row gt_right">13023.000</td>
+      <td class="gt_row gt_right">16478.216</td>
+      <td class="gt_row gt_right">2.715316e+08</td>
+      <td class="gt_row gt_right">857.000</td>
+      <td class="gt_row gt_right">139.000</td>
+      <td class="gt_row gt_right">36325.000</td>
+    </tr>
+    <tr class="gt_group_heading_row">
+      <td colspan="8" class="gt_group_heading">Ovid</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">eng</td>
+      <td class="gt_row gt_left">average_rating</td>
+      <td class="gt_row gt_right">4.222</td>
+      <td class="gt_row gt_right">0.194</td>
+      <td class="gt_row gt_right">3.800000e-02</td>
+      <td class="gt_row gt_right">4.190</td>
+      <td class="gt_row gt_right">4.020</td>
+      <td class="gt_row gt_right">4.545</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">eng</td>
+      <td class="gt_row gt_left">ratings_count</td>
+      <td class="gt_row gt_right">6213.250</td>
+      <td class="gt_row gt_right">16639.188</td>
+      <td class="gt_row gt_right">2.768626e+08</td>
+      <td class="gt_row gt_right">323.500</td>
+      <td class="gt_row gt_right">32.000</td>
+      <td class="gt_row gt_right">47387.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">eng</td>
+      <td class="gt_row gt_left">num_pages</td>
+      <td class="gt_row gt_right">534.000</td>
+      <td class="gt_row gt_right">97.860</td>
+      <td class="gt_row gt_right">9.576571e+03</td>
+      <td class="gt_row gt_right">529.000</td>
+      <td class="gt_row gt_right">400.000</td>
+      <td class="gt_row gt_right">723.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">eng</td>
+      <td class="gt_row gt_left">text_reviews_count</td>
+      <td class="gt_row gt_right">110.500</td>
+      <td class="gt_row gt_right">264.793</td>
+      <td class="gt_row gt_right">7.011543e+04</td>
+      <td class="gt_row gt_right">14.000</td>
+      <td class="gt_row gt_right">3.000</td>
+      <td class="gt_row gt_right">764.000</td>
+    </tr>
+    <tr class="gt_group_heading_row">
+      <td colspan="8" class="gt_group_heading">Stephen King</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">en-US</td>
+      <td class="gt_row gt_left">average_rating</td>
+      <td class="gt_row gt_right">3.947</td>
+      <td class="gt_row gt_right">0.043</td>
+      <td class="gt_row gt_right">2.000000e-03</td>
+      <td class="gt_row gt_right">3.930</td>
+      <td class="gt_row gt_right">3.915</td>
+      <td class="gt_row gt_right">3.995</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">en-US</td>
+      <td class="gt_row gt_left">ratings_count</td>
+      <td class="gt_row gt_right">1470.000</td>
+      <td class="gt_row gt_right">1332.980</td>
+      <td class="gt_row gt_right">1.776837e+06</td>
+      <td class="gt_row gt_right">1282.000</td>
+      <td class="gt_row gt_right">241.000</td>
+      <td class="gt_row gt_right">2887.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">en-US</td>
+      <td class="gt_row gt_left">num_pages</td>
+      <td class="gt_row gt_right">360.667</td>
+      <td class="gt_row gt_right">30.089</td>
+      <td class="gt_row gt_right">9.053330e+02</td>
+      <td class="gt_row gt_right">376.000</td>
+      <td class="gt_row gt_right">326.000</td>
+      <td class="gt_row gt_right">380.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">en-US</td>
+      <td class="gt_row gt_left">text_reviews_count</td>
+      <td class="gt_row gt_right">127.667</td>
+      <td class="gt_row gt_right">140.678</td>
+      <td class="gt_row gt_right">1.979033e+04</td>
+      <td class="gt_row gt_right">84.000</td>
+      <td class="gt_row gt_right">14.000</td>
+      <td class="gt_row gt_right">285.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">eng</td>
+      <td class="gt_row gt_left">average_rating</td>
+      <td class="gt_row gt_right">4.081</td>
+      <td class="gt_row gt_right">0.266</td>
+      <td class="gt_row gt_right">7.100000e-02</td>
+      <td class="gt_row gt_right">4.110</td>
+      <td class="gt_row gt_right">3.585</td>
+      <td class="gt_row gt_right">4.535</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">eng</td>
+      <td class="gt_row gt_left">ratings_count</td>
+      <td class="gt_row gt_right">83279.095</td>
+      <td class="gt_row gt_right">204672.983</td>
+      <td class="gt_row gt_right">4.189103e+10</td>
+      <td class="gt_row gt_right">12729.000</td>
+      <td class="gt_row gt_right">281.000</td>
+      <td class="gt_row gt_right">944903.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">eng</td>
+      <td class="gt_row gt_left">num_pages</td>
+      <td class="gt_row gt_right">458.238</td>
+      <td class="gt_row gt_right">231.374</td>
+      <td class="gt_row gt_right">5.353379e+04</td>
+      <td class="gt_row gt_right">463.000</td>
+      <td class="gt_row gt_right">66.000</td>
+      <td class="gt_row gt_right">1096.000</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">eng</td>
+      <td class="gt_row gt_left">text_reviews_count</td>
+      <td class="gt_row gt_right">1609.286</td>
+      <td class="gt_row gt_right">3374.593</td>
+      <td class="gt_row gt_right">1.138788e+07</td>
+      <td class="gt_row gt_right">227.000</td>
+      <td class="gt_row gt_right">7.000</td>
+      <td class="gt_row gt_right">15105.000</td>
+    </tr>
+  </tbody>
+  
+  
+</table></div>
+General trend again follows: average_rating has a much smaller spread compared to other variables. The table seems short since selected authors only publish in particular language. Nevertheless, we can conclude that J.K. Rowling’s titles are on average rated higher than that of Stephen King’s and Ovid’s, though this may be confounded by the fact that her titles have much more ratings compared to titles of other authors.</p>
+</div>
+<div id="visualizations" class="section level3">
+<h3>Visualizations</h3>
+<pre class="r"><code>cor_matrix %&gt;% as.data.frame() %&gt;% rownames_to_column(&quot;var1&quot;) %&gt;% 
+    pivot_longer(-1, &quot;var2&quot;, values_to = &quot;correlation&quot;) %&gt;% ggplot(aes(var1, 
+    var2, fill = correlation)) + geom_tile() + scale_fill_gradient2(low = &quot;red&quot;, 
+    mid = &quot;white&quot;, high = &quot;blue&quot;) + geom_text(aes(label = round(correlation, 
+    2)), color = &quot;black&quot;, size = 4) + theme(axis.text.x = element_text(angle = 90, 
+    hjust = 1)) + coord_fixed() + xlab(&quot;&quot;) + ylab(&quot;&quot;)</code></pre>
+<p><img src="/project/Project1_files/figure-html/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" />
+The correlation heatmap reveals that from our numerical variables, only ratings_count and text_reviews_count is significantly correlated, which makes sense logically since one would expect a partitular title to be more critically acclaimed the more people have read and rated that particular title. On the other hand, other pairs of variables are weakly correlated, which is somewhat surprising since one would expect more critically acclaimed titles to be particularly high or low in quality/rating.</p>
+<pre class="r"><code>library(ggExtra)
+p1 &lt;- ggplot(merged_books) + geom_point(aes(x = num_pages, y = average_rating, 
+    color = language_code, shape = 1)) + scale_shape_identity() + 
+    scale_color_brewer(palette = &quot;Set1&quot;, label = c(&quot;eng-Canada&quot;, 
+        &quot;eng-Great Britain&quot;, &quot;eng-US&quot;, &quot;eng&quot;, &quot;Multilingual&quot;)) + 
+    scale_y_continuous(breaks = seq(0, 5, 0.2)) + scale_x_continuous(breaks = seq(0, 
+    3500, 500)) + labs(color = &quot;Language Codes&quot;, x = &quot;Total Pages&quot;, 
+    y = &quot;Average Rating&quot;, title = &quot;Book Average Rating vs Total Pages&quot;) + 
+    theme_minimal() + theme(plot.title = element_text(hjust = 0.5), 
+    legend.position = c(0.8, 0.35))
+ggMarginal(p1, type = &quot;densigram&quot;)</code></pre>
+<p><img src="/project/Project1_files/figure-html/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" />
+The marginal distribution of novel average ratings is roughly normal (symmetric) with mean around rating 4.0, which implies that on average the books in this merged dataset have a relatively high rating (they are good books!). The marginal distribution of total number of pages of the novels is right skewed with mean around 300 pages, which makes sense given that books (except textbooks, especially novels) are typically short and do not go over 1000 pages. This scatterplot does not indicate an apparent relationship between average_rating and total pages, which also makes sense since quantity does not imply quality. When colorized by language codes, we see that almost all books are in English (especially the longer ones, since the effort to translate said books would be monumental) with each sub-category consisting of largely variant book ratings with no significant patterns.</p>
+<pre class="r"><code>months &lt;- c(&quot;January&quot;, &quot;February&quot;, &quot;March&quot;, &quot;April&quot;, &quot;May&quot;, &quot;June&quot;, 
+    &quot;July&quot;, &quot;August&quot;, &quot;September&quot;, &quot;October&quot;, &quot;Novemember&quot;, &quot;December&quot;)
+# Let&#39;s filter down to just a few categories for clearer
+# visualization
+merged_books %&gt;% filter(categories %in% c(&quot;Fiction&quot;, &quot;Science&quot;, 
+    &quot;Business &amp; Economics&quot;, &quot;Computers&quot;, &quot;Religion&quot;)) %&gt;% mutate(months = factor(months[as.numeric(month)], 
+    levels = months)) %&gt;% ggplot(aes(x = as.numeric(day), y = average_rating, 
+    fill = categories)) + scale_fill_brewer(palette = &quot;Dark2&quot;) + 
+    geom_bar(stat = &quot;summary&quot;, fun = mean) + facet_wrap(~months) + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1), 
+        plot.title = element_text(hjust = 0.5)) + labs(title = &quot;Book Ratings per Day of each Month&quot;, 
+    x = &quot;Day&quot;, y = &quot;Mean Average rating&quot;, fill = &quot;Genre&quot;) + scale_x_continuous(breaks = c(1, 
+    seq(5, 31, 5)))</code></pre>
+<p><img src="/project/Project1_files/figure-html/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" />
+Based on the categories of books we have selected, it appears that authors like to release these genre books at the first day of each month (most likely to maximize the first monthly sales possible), given that we have the most number of stacked bars at usually day 1 of each month except August (which happens to be around the time of school starting in the fall). For our dataset, the purple colored bars appears most often, meaning that fiction is the most popular category of novels given that it’s published the most. Across each month and day, the mean average_rating of each genre appears roughly similar, which makes sense which the quality of a particular novel category should have no relation with respect to the title’s publication date. The frequency of each category also remains relative constant throughout each month and day, with the exception of March which curiously have no computer publications.</p>
+</div>
+<div id="dimensionality-reduction" class="section level3">
+<h3>Dimensionality Reduction</h3>
+<pre class="r"><code>library(cluster)
+# we should first see how many clusters we should create
+pam_dat &lt;- merged_books %&gt;% select(is.numeric) %&gt;% scale %&gt;% 
+    as.data.frame
+sil_width &lt;- vector()
+for (i in 2:10) {
+    pam_fit &lt;- pam(pam_dat, k = i)
+    sil_width[i] &lt;- pam_fit$silinfo$avg.width
+}
+
+# visualize our results to select k
+ggplot() + geom_line(aes(x = 1:10, y = sil_width)) + scale_x_continuous(name = &quot;Number of Clusters (k)&quot;, 
+    breaks = 1:10) + labs(title = &quot;Average Silhouette Width per Number of Clusters&quot;, 
+    y = &quot;Average Silhouette Width&quot;) + theme(plot.title = element_text(hjust = 0.5))</code></pre>
+<p><img src="/project/Project1_files/figure-html/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" />
+Based on this silhouette width plot, we see that we should elect three clusters since that’s the number of clusters that results in the highest average silhouette width, which means that our 3 supposed clusters should be more cohesive, distinct, and parsimonious compared to other number of clusters.</p>
+<pre class="r"><code>pam &lt;- pam_dat %&gt;% pam(3)
+# now that we ran PAM, save the cluster assignment
+pam_dat &lt;- pam_dat %&gt;% mutate(cluster = as.factor(pam$clustering))
+
+library(GGally)
+ggpairs(pam_dat, columns = 1:4, aes(color = cluster))</code></pre>
+<p><img src="/project/Project1_files/figure-html/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" />
+For the first column, particularly the num_pages vs average_rating scatterplot, we see three distinct clusters where the red clusters seems to consist of titles with relatively large number of pages, while the blue and green clusters separate out titles with low page numbers but with low and high average_ratings respectively (at z=0, or the overall mean). The same trend is also found in other graphs, where the blue clusters mainly consist of low-rated, small books, while the red cluster consist of large books and the green cluster highly-rated, small books. The clusters seems to overlap relative to variables like text_reviews_count and reviews_count which is highly correlated with each other and thus hard to differentiate.</p>
+<pre class="r"><code># Interpreting Average Silhouette Width
+plot(silhouette(pam), col = 1:3, border = NA)</code></pre>
+<p><img src="/project/Project1_files/figure-html/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Our average silhouette width was 0.27, which according to the cutoffs is within 0.26-0.5, indicating that the cluster structure is weak and likely superficial.</p>
 </div>
 
             
