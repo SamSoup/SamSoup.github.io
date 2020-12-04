@@ -6,16 +6,16 @@
     <description>Recent content on Sam Su</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Wed, 02 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 03 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Test</title>
-      <link>/post/2020/12/02/test/</link>
-      <pubDate>Wed, 02 Dec 2020 00:00:00 +0000</pubDate>
+      <title>Reticulate Fun with Python!</title>
+      <link>/post/2020/12/03/reticulate-fun-with-python/</link>
+      <pubDate>Thu, 03 Dec 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020/12/02/test/</guid>
-      <description>Link to project 1
-Link to google
-print(&amp;quot;This is a R Chunk&amp;quot;)## [1] &amp;quot;This is a R Chunk&amp;quot;print(&amp;quot;This is a Python Chunk&amp;quot;)## This is a Python Chunk</description>
+      <guid>/post/2020/12/03/reticulate-fun-with-python/</guid>
+      <description>Python has always been a popular tool for a variety of reasons. However, I believe that R has the edge in certain applications, such as data visualization using ggplot.
+Below, we are going to analyze some data from python first, then use R to visualize what we will learn!
+# need reticulate to start communicating!library(reticulate)Here, we load the boston dataset and conduct a Principal Component Analysis to identify meaningful clusters of houses in Boston</description>
     </item>
     
     <item>

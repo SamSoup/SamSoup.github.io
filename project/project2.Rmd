@@ -1,7 +1,7 @@
 ---
 title: 'Project 2: Modeling, Testing, and Predicting'
 author: "Yiheng Su"
-date: '11/18/20'
+hidedate: true
 output:
   html_document:
     toc: yes

@@ -1,0 +1,136 @@
+---
+title: Reticulate Fun with Python!
+author: Sam Su
+date: '2020-12-03'
+hiderelated: true
+slug: reticulate-fun-with-python
+categories: []
+tags: []
+description: ''
+---
+
+<link href="index_files/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="index_files/anchor-sections/anchor-sections.js"></script>
+
+
+<p>Python has always been a popular tool for a variety of reasons. However, I believe that R has the edge in certain applications, such as data visualization using <code>ggplot</code>.</p>
+<p>Below, we are going to analyze some data from python first, then use R to visualize what we will learn!</p>
+<pre class="r"><code># need reticulate to start communicating!
+library(reticulate)</code></pre>
+<p>Here, we load the <code>boston</code> dataset and conduct a Principal Component Analysis to identify meaningful clusters of houses in Boston</p>
+<pre class="python"><code>import pandas as pd
+from sklearn.datasets import load_boston
+# boston is a dictionary containing the predictors &#39;data&#39;, the response &#39;target&#39;, predictor names &#39;feature_names&#39;, and metadata &#39;DESCR&#39;
+boston = load_boston()
+print(boston.DESCR)</code></pre>
+<pre><code>## .. _boston_dataset:
+## 
+## Boston house prices dataset
+## ---------------------------
+## 
+## **Data Set Characteristics:**  
+## 
+##     :Number of Instances: 506 
+## 
+##     :Number of Attributes: 13 numeric/categorical predictive. Median Value (attribute 14) is usually the target.
+## 
+##     :Attribute Information (in order):
+##         - CRIM     per capita crime rate by town
+##         - ZN       proportion of residential land zoned for lots over 25,000 sq.ft.
+##         - INDUS    proportion of non-retail business acres per town
+##         - CHAS     Charles River dummy variable (= 1 if tract bounds river; 0 otherwise)
+##         - NOX      nitric oxides concentration (parts per 10 million)
+##         - RM       average number of rooms per dwelling
+##         - AGE      proportion of owner-occupied units built prior to 1940
+##         - DIS      weighted distances to five Boston employment centres
+##         - RAD      index of accessibility to radial highways
+##         - TAX      full-value property-tax rate per $10,000
+##         - PTRATIO  pupil-teacher ratio by town
+##         - B        1000(Bk - 0.63)^2 where Bk is the proportion of blacks by town
+##         - LSTAT    % lower status of the population
+##         - MEDV     Median value of owner-occupied homes in $1000&#39;s
+## 
+##     :Missing Attribute Values: None
+## 
+##     :Creator: Harrison, D. and Rubinfeld, D.L.
+## 
+## This is a copy of UCI ML housing dataset.
+## https://archive.ics.uci.edu/ml/machine-learning-databases/housing/
+## 
+## 
+## This dataset was taken from the StatLib library which is maintained at Carnegie Mellon University.
+## 
+## The Boston house-price data of Harrison, D. and Rubinfeld, D.L. &#39;Hedonic
+## prices and the demand for clean air&#39;, J. Environ. Economics &amp; Management,
+## vol.5, 81-102, 1978.   Used in Belsley, Kuh &amp; Welsch, &#39;Regression diagnostics
+## ...&#39;, Wiley, 1980.   N.B. Various transformations are used in the table on
+## pages 244-261 of the latter.
+## 
+## The Boston house-price data has been used in many machine learning papers that address regression
+## problems.   
+##      
+## .. topic:: References
+## 
+##    - Belsley, Kuh &amp; Welsch, &#39;Regression diagnostics: Identifying Influential Data and Sources of Collinearity&#39;, Wiley, 1980. 244-261.
+##    - Quinlan,R. (1993). Combining Instance-Based and Model-Based Learning. In Proceedings on the Tenth International Conference of Machine Learning, 236-243, University of Massachusetts, Amherst. Morgan Kaufmann.</code></pre>
+<p>Let’s parse the data into a <code>pandas</code> dataframe and prepare for PCA</p>
+<pre class="python"><code>from sklearn import preprocessing
+# always scale the data before performing PCA!
+scaled_data = preprocessing.scale(boston.data)
+boston_response = boston.target
+boston_df = pd.DataFrame(scaled_data)
+boston_df.columns = boston.feature_names
+boston_df.head()</code></pre>
+<pre><code>##        CRIM        ZN     INDUS  ...   PTRATIO         B     LSTAT
+## 0 -0.419782  0.284830 -1.287909  ... -1.459000  0.441052 -1.075562
+## 1 -0.417339 -0.487722 -0.593381  ... -0.303094  0.441052 -0.492439
+## 2 -0.417342 -0.487722 -0.593381  ... -0.303094  0.396427 -1.208727
+## 3 -0.416750 -0.487722 -1.306878  ...  0.113032  0.416163 -1.361517
+## 4 -0.412482 -0.487722 -1.306878  ...  0.113032  0.441052 -1.026501
+## 
+## [5 rows x 13 columns]</code></pre>
+<p>Finally, we conduct the PCA here!</p>
+<pre class="python"><code>from sklearn.decomposition import PCA
+pca = PCA()
+pcs = pca.fit_transform(boston_df)</code></pre>
+<p>Nothing special happened yet, but let’s now use R to plot the PCA results from python</p>
+<pre class="r"><code>library(tidyverse)
+# load python PCA results
+boston &lt;- py$boston_df
+boston_pca &lt;- py$pca
+boston_pcs &lt;- py$pcs
+
+# set up for scree plot
+varprop &lt;- boston_pca$explained_variance_ratio_
+num_pc &lt;- ncol(boston_pca$components_) 
+
+# plot scree-plot to see variance explained
+ggplot() + geom_bar(aes(y=varprop, x=1:num_pc), stat=&quot;identity&quot;) +
+  labs(x = &quot;&quot;, title = &quot;Proportion of Variance Explained by Each PC&quot;) +
+  geom_path(aes(y=varprop, x=1:num_pc)) + 
+  geom_text(aes(x=1:num_pc, y=varprop, label=round(varprop, 3)), 
+            vjust=1, col=&quot;red&quot;, size=2.5) + 
+  scale_y_continuous(breaks=seq(0, 1, .2), labels = scales::percent) + 
+  scale_x_continuous(breaks=1:num_pc) + 
+  theme(plot.title = element_text(hjust = 0.5))</code></pre>
+<p><img src="index_files/figure-html/visualize-1.png" width="672" /></p>
+<p>Wow, the first principal component alone account for 47.1% of the variation in the dataset, where the rest collectively account for the other roughly 50%. Let’s examine the significance of each predictor by looking at a loadings plot for the first PC:</p>
+<pre class="r"><code>PC1 &lt;- round(boston_pca$components_[, 1], 3)
+ggplot() + geom_bar(aes(y=PC1, x=colnames(boston)), stat=&quot;identity&quot;) + 
+  labs(title = &quot;Predictor Contributions in PC1&quot;, y = &quot;&quot;, x = &quot;Predictors&quot;) +
+  theme(plot.title = element_text(hjust = 0.5))</code></pre>
+<p><img src="index_files/figure-html/loadings%20plot%20PC1-1.png" width="672" /></p>
+<p>For PC1, it seems that high PC1 socres are associated with houses with especially high proportion of owner-ccupied units built prior to 1940 (<em>Age</em>), especially low proportion of residential land zoned for lots over 25,000 square feet (<em>ZN</em>), low average number of rooms per dwelling (<em>RM</em>), high weighted distances to five Boston employment centres (<em>DIS</em>), high per capita crime rate by town (<em>CRIM</em>), high proportion of non-retail business acres per town (<em>INDUS</em>), and high index of accessibility to radial highways (<em>RAD</em>). Hence, houses ranking high on PC1 seems to be undesirable houses that are old, incontinent to travel to work, small, unsafe to live in, and generally around shopping districts perhaps in the down-town area with fast access to highways. As we will see below, this is why houses with high PC1 socres have low selling prices.</p>
+<p>Finally, let’s visualize the <code>boston</code> dataset again projected into the 2-dimensional space of PC1 and PC2:</p>
+<pre class="r"><code>library(viridis)
+ggplot() + 
+  geom_point(aes(x = boston_pcs[, 1], y= boston_pcs[, 2], 
+                 color = py$boston_response)) + scale_color_viridis(option = &quot;D&quot;) +
+  labs(title = &quot;Boston Dataset in PC2 vs PC1 Projection Space&quot;, 
+       x = &quot;PC1 scores&quot;, y = &quot;PC2 scores&quot;, color = &quot;House Prices (in $1000s)&quot;) + 
+  theme(plot.title = element_text(hjust = 0.5), legend.title = element_text(size = 8))</code></pre>
+<p><img src="index_files/figure-html/projection%20plot-1.png" width="672" /></p>
+<p>Fascinating; we obtain a domed structure-looking plot centered around PC1=0.5. In general, houses with high median prices tend to have low PC1 scores, while houses with especially low median prices tend to have high PC1 scores, which is inline with our intepretation of the PC1 loadings before. PC2 is less defined in terms of housing prices, where both highly priced and low priced houses can have low PC2 scores.</p>
+<p>In conclusion, Python may have the edge in machine learning tools and applications, but I find R’s data visualization abilities to be superior in terms of customization and syntactic structure (<code>ggplot</code> grammar is very intuitive and much cleaner in my opinion versus <code>matplotlib</code>).</p>
+<p>Thanks for sticking with me! Here’s a meme for all the PCA lovers out there…</p>
+<p><img src="/img/PCA_meme.jpg" width="400" height="400" /></p>

@@ -1,0 +1,104 @@
+---
+title: Reticulate Fun with Python!
+author: Sam Su
+date: '2020-12-03'
+hiderelated: true
+slug: reticulate-fun-with-python
+categories: []
+tags: []
+description: ''
+---
+
+Python has always been a popular tool for a variety of reasons. However, I believe that R has the edge in certain applications, such as data visualization using `ggplot`.
+
+Below, we are going to analyze some data from python first, then use R to visualize what we will learn!
+
+```{r load reticulate}
+# need reticulate to start communicating!
+library(reticulate)
+```
+
+Here, we load the `boston` dataset and conduct a Principal Component Analysis to identify meaningful clusters of houses in Boston
+
+```{python prepare boston data}
+import pandas as pd
+from sklearn.datasets import load_boston
+# boston is a dictionary containing the predictors 'data', the response 'target', predictor names 'feature_names', and metadata 'DESCR'
+boston = load_boston()
+print(boston.DESCR)
+```
+
+Let's parse the data into a `pandas` dataframe and prepare for PCA
+
+```{python set up dataframe}
+from sklearn import preprocessing
+# always scale the data before performing PCA!
+scaled_data = preprocessing.scale(boston.data)
+boston_response = boston.target
+boston_df = pd.DataFrame(scaled_data)
+boston_df.columns = boston.feature_names
+boston_df.head()
+```
+
+Finally, we conduct the PCA here!
+
+```{python conduct PCA}
+from sklearn.decomposition import PCA
+pca = PCA()
+pcs = pca.fit_transform(boston_df)
+```
+
+Nothing special happened yet, but let's now use R to plot the PCA results from python
+
+```{r visualize, message=FALSE, warning=FALSE}
+library(tidyverse)
+# load python PCA results
+boston <- py$boston_df
+boston_pca <- py$pca
+boston_pcs <- py$pcs
+
+# set up for scree plot
+varprop <- boston_pca$explained_variance_ratio_
+num_pc <- ncol(boston_pca$components_) 
+
+# plot scree-plot to see variance explained
+ggplot() + geom_bar(aes(y=varprop, x=1:num_pc), stat="identity") +
+  labs(x = "", title = "Proportion of Variance Explained by Each PC") +
+  geom_path(aes(y=varprop, x=1:num_pc)) + 
+  geom_text(aes(x=1:num_pc, y=varprop, label=round(varprop, 3)), 
+            vjust=1, col="red", size=2.5) + 
+  scale_y_continuous(breaks=seq(0, 1, .2), labels = scales::percent) + 
+  scale_x_continuous(breaks=1:num_pc) + 
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Wow, the first principal component alone account for 47.1% of the variation in the dataset, where the rest collectively account for the other roughly 50%. Let's examine the significance of each predictor by looking at a loadings plot for the first PC:
+
+```{r loadings plot PC1}
+PC1 <- round(boston_pca$components_[, 1], 3)
+ggplot() + geom_bar(aes(y=PC1, x=colnames(boston)), stat="identity") + 
+  labs(title = "Predictor Contributions in PC1", y = "", x = "Predictors") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+For PC1, it seems that high PC1 socres are associated with houses with especially high proportion of owner-ccupied units built prior to 1940 (*Age*), especially low proportion of residential land zoned for lots over 25,000 square feet (*ZN*), low average number of rooms per dwelling (*RM*), high weighted distances to five Boston employment centres (*DIS*), high per capita crime rate by town (*CRIM*), high proportion of non-retail business acres per town (*INDUS*), and high index of accessibility to radial highways (*RAD*). Hence, houses ranking high on PC1 seems to be undesirable houses that are old, incontinent to travel to work, small, unsafe to live in, and generally around shopping districts perhaps in the down-town area with fast access to highways. As we will see below, this is why houses with high PC1 socres have low selling prices.
+
+Finally, let's visualize the `boston` dataset again projected into the 2-dimensional space of PC1 and PC2:
+
+```{r projection plot, message=FALSE, warning=FALSE}
+library(viridis)
+ggplot() + 
+  geom_point(aes(x = boston_pcs[, 1], y= boston_pcs[, 2], 
+                 color = py$boston_response)) + scale_color_viridis(option = "D") +
+  labs(title = "Boston Dataset in PC2 vs PC1 Projection Space", 
+       x = "PC1 scores", y = "PC2 scores", color = "House Prices (in $1000s)") + 
+  theme(plot.title = element_text(hjust = 0.5), legend.title = element_text(size = 8))
+```
+
+Fascinating; we obtain a domed structure-looking plot centered around PC1=0.5. In general, houses with high median prices tend to have low PC1 scores, while houses with especially low median prices tend to have high PC1 scores, which is inline with our intepretation of the PC1 loadings before. PC2 is less defined in terms of housing prices, where both highly priced and low priced houses can have low PC2 scores. 
+
+In conclusion, Python may have the edge in machine learning tools and applications, but I find R's data visualization abilities to be superior in terms of customization and syntactic structure (`ggplot` grammar is very intuitive and much cleaner in my opinion versus `matplotlib`).
+
+Thanks for sticking with me! Here's a meme for all the PCA lovers out there...
+
+![](/img/PCA_meme.jpg){width=400px height=400px}
