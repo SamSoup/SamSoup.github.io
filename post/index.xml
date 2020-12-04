@@ -6,16 +6,7 @@
     <description>Recent content in Posts on Sam Su</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Fri, 04 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Test_Html</title>
-      <link>/post/2020/12/04/test-html/</link>
-      <pubDate>Fri, 04 Dec 2020 00:00:00 +0000</pubDate>
-      
-      <guid>/post/2020/12/04/test-html/</guid>
-      <description>print(&amp;quot;This is a R code chunk!&amp;quot;)## [1] &amp;quot;This is a R code chunk!&amp;quot;</description>
-    </item>
-    
+    <lastBuildDate>Thu, 03 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Reticulate Fun with Python!</title>
       <link>/post/2020/12/03/reticulate-fun-with-python/</link>
