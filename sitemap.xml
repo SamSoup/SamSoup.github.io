@@ -3,17 +3,22 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>/post/</loc>
-    <lastmod>2020-12-03T00:00:00+00:00</lastmod>
+    <loc>/post/2021/01/23/cs373-spring-2021-yiheng-su/</loc>
+    <lastmod>2021-01-23T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/post/2020/12/03/reticulate-fun-with-python/</loc>
-    <lastmod>2020-12-03T00:00:00+00:00</lastmod>
+    <loc>/post/</loc>
+    <lastmod>2021-01-23T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>/</loc>
+    <lastmod>2021-01-23T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/post/2020/12/03/reticulate-fun-with-python/</loc>
     <lastmod>2020-12-03T00:00:00+00:00</lastmod>
   </url>
   
