@@ -6,12 +6,16 @@ hiderelated: true
 hidediscus: true
 ---
 
+<!-- <center> -->
+
+<!-- # object data="/resume.pdf" type="application/pdf" > -->
+<!-- # <iframe src="/resume.pdf" width="100%" height="800" border="0"></iframe> -->
+
+<!-- <object data="/resume.pdf" type="application/pdf" width="100%" height="650px"> -->
+
+<!-- </object> -->
+<!-- </center> -->
+
 <center>
-
-# object data="/resume.pdf" type="application/pdf" >
-# <iframe src="/resume.pdf" width="100%" height="800" border="0"></iframe>
-
-<object data="/resume.pdf" type="application/pdf" width="100%" height="650px"> 
-
-</object>
+<iframe src="/resume.pdf" width="100%" height="800" border="0"></iframe>
 </center>
