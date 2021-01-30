@@ -1,0 +1,30 @@
+---
+title: 'CS373 Spring 2021: Week of 25 Jan - 31 Jan'
+author: Sam Su
+date: '2021-01-30'
+slug: cs373-blog2
+hiderelated: true
+---
+
+
+
+<p><img src="/img/Headshot_cropped.jpg" style="width:80.0%" height="400" /></p>
+<p><strong>1. What did you do this past week?</strong></p>
+<p>I attended lectures on Monday, Wednesday, and Friday this past week. During those lectures, I learned a lot about the assertions (<code>assert</code>), unit testing frameworks (<code>unittest</code>), and coverage tools (<code>coverage</code>) in <code>python3</code> under the context of the Collatz Conjecture, a century old problem that no one has yet to prove, yet always holds nevertheless. Quite surprising, since the problem is fairly easy to understand as compared to other millennium questions such as ‘Does P = NP’. Specifically, Collatz conjecture mandates that for any positive integer n, generate a sequence with n as the first term such that if the previous term is even, then next term is one half of previous; otherwise, if odd, then next term is 3 times previous plus one such that no matter the initial value of n, the sequence will always reach 1. Even with the computational power today, we are still unable to locate a counterexample!</p>
+<p>I have also finished the first project, which is efficiently implementing Collatz using techniques such as memoization. The project was fairly easy since I had previously solved the same problem in a different class offered by Dr. Downing, but I found myself needing to employ more programming tricks in Python in order to make the performance comparable to the solution I implemented previously in c++.</p>
+<p><strong>2. What’s in your way?</strong></p>
+<p>The beginning of the semester always gives the false impression of a light workload, hence so far nothing really stands in my way. However, I am currently undertaking three research project simultaneously, so juggling the workload around research and this class (once the large website project is released) will prove to the biggest obstacle blocking success.</p>
+<p><strong>3. What will you do next week?</strong></p>
+<p>Next week I will try to maintain my work ethnic and stay ahead of work required for this class as well as others.</p>
+<p><strong>4. If you read it, what did you think of the makefile?</strong></p>
+<p>I thought the <code>makefile</code> was sound and serve as an exemplary starting point especially for someone who’s not that familiar with makefiles and typically automatically generate them from <code>cmake</code>. The makefile in particular contains several useful commands such as <code>make clean</code>, <code>make test</code>, and <code>make run</code> which cleans the work directory of toolchain-extension files, test the logic, and run the logic respectively. Furthermore, the most frequent command I use is <code>make docker</code> which creates a vm-like environment with all the required toolchains installed so that I do not need to install these on my own machine and worry about version compatability.</p>
+<p><strong>5. What was your experience of Docker? (this question will vary, week to week)</strong></p>
+<p>I have tried to use <code>Docker</code> previously attempting to implement <code>grafana</code>, a python based open source analytics and interactive visualization web application for UT’s unmanned aerial vehicles (UAV) club. Unfortunately, I got confused with trying to do multiple things at once and never got the docker image to work correctly. Therefore, I hope that this time with Dr. Downing’s help it should be less daunting.</p>
+<p><strong>6. What was your experience of assertions? (this question will vary, week to week)</strong></p>
+<p>My initial receptions of assertions are that they ‘clutter up the code’ and are really unnecessary if the programmer is careful in translating logic and design into code. But seeing Dr. Downing’s perspective, I now realize that perfect translations from the programmer ideal into machine code behavior is near impossible, and assertions serve as the last line of defense when we make an erroneous assumption or commit a gross conceptual error.</p>
+<p><strong>7. What was your experience of unit tests? (this question will vary, week to week)</strong></p>
+<p>Any experienced programmer have experienced the agony of writing unit tests, and I am no exception. I have written unit tests before in with <code>Junit</code> in Java and <code>googletest</code> in c++. Using the <code>unittest</code> module in Python is very similar in nature althoug the syntax infrastructure is easier compared to <code>googletest</code> in my opinion.</p>
+<p><strong>8. What made you happy this week?</strong></p>
+<p>My application to the Huk Lab at UT was recently accepted :)</p>
+<p><strong>9. What’s your pick-of-the-week or tip-of-the-week?</strong></p>
+<p>My pick-of-the-week is actually a specific package in <code>R</code> (a programming language) called <code>reticulate</code>. Aspiring Data Scientists as myself sometimes find the need to harness the power of both <code>Python</code> and <code>R</code>, which is where <code>reticulate</code> comes in hand. That is, the package act as a ‘pipe’ that allows variables created in <code>Python</code> to be visible in <code>R</code>; typical application can be found in my other blog. In this way, we are able to delegate to <code>Python</code> the data crunching while using <code>R</code> to beautifully customize visualizations.</p>

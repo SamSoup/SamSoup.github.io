@@ -6,7 +6,17 @@
     <description>Recent content in Posts on Sam Su</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Sat, 23 Jan 2021 00:00:00 +0000</lastBuildDate><atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 30 Jan 2021 00:00:00 +0000</lastBuildDate><atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CS373 Spring 2021: Week of 25 Jan - 31 Jan</title>
+      <link>/post/2021/01/30/cs373-blog2/</link>
+      <pubDate>Sat, 30 Jan 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/post/2021/01/30/cs373-blog2/</guid>
+      <description>1. What did you do this past week?
+I attended lectures on Monday, Wednesday, and Friday this past week. During those lectures, I learned a lot about the assertions (assert), unit testing frameworks (unittest), and coverage tools (coverage) in python3 under the context of the Collatz Conjecture, a century old problem that no one has yet to prove, yet always holds nevertheless. Quite surprising, since the problem is fairly easy to understand as compared to other millennium questions such as ‘Does P = NP’.</description>
+    </item>
+    
     <item>
       <title>CS373 Spring 2021: Yiheng Su</title>
       <link>/post/2021/01/23/cs373-spring-2021-yiheng-su/</link>
