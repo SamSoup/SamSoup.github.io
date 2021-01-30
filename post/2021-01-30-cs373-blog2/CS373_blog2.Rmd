@@ -36,7 +36,7 @@ My initial receptions of assertions are that they 'clutter up the code' and are 
 
 **7. What was your experience of unit tests? (this question will vary, week to week)**
 
-Any experienced programmer have experienced the agony of writing unit tests, and I am no exception. I have written unit tests before in with `Junit` in Java and `googletest` in c++. Using the `unittest` module in Python is very similar in nature althoug the syntax infrastructure is easier compared to `googletest` in my opinion.
+Any experienced programmer has experienced the agony of writing unit tests, and I am no exception. I have written unit tests before in with `Junit` in Java and `googletest` in c++. Using the `unittest` module in Python is very similar in nature althoug the syntax infrastructure is easier compared to `googletest` in my opinion.
 
 **8. What made you happy this week?**
 
