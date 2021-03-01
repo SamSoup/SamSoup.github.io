@@ -6,7 +6,17 @@
     <description>Recent content on Sam Su</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Fri, 05 Feb 2021 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 28 Feb 2021 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CS373 Spring 2021: Week of 22 Feb - 28 Feb</title>
+      <link>/post/2021/02/28/cs373-spring-2021-yiheng-su/</link>
+      <pubDate>Sun, 28 Feb 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/post/2021/02/28/cs373-spring-2021-yiheng-su/</guid>
+      <description>1. What did you do this past week?
+This past week, I attended lectures as usual and learned operators and the reduce() function in Python. Also, I have been busy with our team working on phase I of the large website project. Because of the past storm, we couldn’t really get together as a team until Saturday of this week where we finished the project proposal on natural disaster education and prevention.</description>
+    </item>
+    
     <item>
       <title>CS373 Spring 2021: Week of 1 Feb - 7 Feb</title>
       <link>/post/2021/02/05/cs373-blog3/</link>
