@@ -1,0 +1,40 @@
+---
+title:  'CS373 Spring 2021: Week of 1 Mar - 7 Mar'
+author: Yiheng Su
+date: '2021-03-07'
+slug: cs373-blog7
+# categories: []
+# tags: []
+# description: ''
+hiderelated: true
+---
+
+![](/img/Headshot_cropped.jpg){width=80% height=400px}
+
+**1. What did you do this past week?**
+
+This past week was most definitely the busiest week, given that phase I of the website project was due yesterday. We had to figure out how to write a fourteen page MPA from scratch, decorate it with various media, and then deploy it for production in AWS. Of course, as Dr. Downing had mentioned, the class material is purposely designed to exhibit a large disconnect from the tools and skills required to implement the project, so that we had almost zero experience diving head straight into the project. Therefore, in the past week, I had spent countless hours learning the basics of React, JSX, Bootstrap, Flask, and AWS, all of which can easily be taught in semester-long classes. Fortunately, we were able to meet most of the requirements for phase I before the deadline.
+
+**2. What's in your way?**
+
+The actual amount of time I had to spend working on the project far exceeded my expectations. There's for sure a learning curve and the assumption is that implementations will become easier past phase I, but there's still a large concern trying to juggle all my work. Combined with my three other on-going research projects, I am really feeling the pressure to meet expectations in various areas while also not falling behind in school works. 
+
+**3. What will you do next week?**
+
+Next week, I am hoping that my team can get a headstart on phase II, where we are to integrate our existing frontend with a newly constructed backend that adheres to our custom RESTful API. I have some idea about what API calls our frontend will need to make, but I have no idea how to implement a SQL database that will maintain the data necessary pulled from other external APIs.
+
+**4. If you read it, what did you think of the Open-Closed Principle?**
+
+The Open-Closed Principle article was another excellent read that explained the core of Object Oriented Design: the Open-Closed Principle. This principle states that any software entity (ie. classes, modules, functions) should be open for extension, but closed for modification. In other words, these objects can be expanded in response to demonstrate new behavior, but should not change drastically in response to requirement changes. I find many connections from the concepts explained in this paper to the world of Physics, for example how in both worlds no system (software entities in OOP, a portion of the universe in Physics) is completely closed. As an extension, the only way to ensure that they will be closed is through the usage of abstraction (ie. interfaces in OOP, general relativity in Physics). 
+
+**5. What was your experience of iterators and reduce2?**
+
+Every programmer, either explicitly or implicitly, has used iterators before. They are ubiquitous to the point of essential, where certain tasks seem impossible without the implementation of iterators (ie. multiple clients iterating through a shared container at their own respective pace). I am no exception to this statement, where I have used iterators mostly implicitly through the syntactic sugar for for each loop (or for in loops in JS). Reduce2, on the other hand, I am less familiar with. It's not often the case where I would want to perform computation on a container to obtain one final result, but I can certainly see how reduce2 will greatly improve code readability and reduce the clutter introduced otherwise by a loop.
+
+**6. What made you happy this week?**
+
+My exam for Introduction to Anthropology was surprisingly easy and I am really glad they didn't ask questions on obscure topics not mentioned in class.
+
+**7. What's your pick-of-the-week or tip-of-the-week?**
+
+My tip-of-the-week would be the command `git stash`. When working with a team (such as this SWE project), it's often the case that you need to pull the changes made by other members before committing yours to the repository. This is where `git stash` comes into play; it allows the programmer to 'stash' changes in the current working directory that can be later 'popped' via `git stash pop`. By doing so, it prevents `git pull` from overriding local changes. 

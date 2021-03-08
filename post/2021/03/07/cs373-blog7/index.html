@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Sam Su" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>CS373 Spring 2021: Week of 1 Mar - 7 Mar</title>
+    <meta name="generator" content="Hugo 0.79.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/post/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+        <li><a href="/resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="/post/2021/03/07/cs373-blog7/">CS373 Spring 2021: Week of 1 Mar - 7 Mar</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         March 7, 2021 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<p><img src="/img/Headshot_cropped.jpg" style="width:80.0%" height="400" /></p>
+<p><strong>1. What did you do this past week?</strong></p>
+<p>This past week was most definitely the busiest week, given that phase I of the website project was due yesterday. We had to figure out how to write a fourteen page MPA from scratch, decorate it with various media, and then deploy it for production in AWS. Of course, as Dr. Downing had mentioned, the class material is purposely designed to exhibit a large disconnect from the tools and skills required to implement the project, so that we had almost zero experience diving head straight into the project. Therefore, in the past week, I had spent countless hours learning the basics of React, JSX, Bootstrap, Flask, and AWS, all of which can easily be taught in semester-long classes. Fortunately, we were able to meet most of the requirements for phase I before the deadline.</p>
+<p><strong>2. What’s in your way?</strong></p>
+<p>The actual amount of time I had to spend working on the project far exceeded my expectations. There’s for sure a learning curve and the assumption is that implementations will become easier past phase I, but there’s still a large concern trying to juggle all my work. Combined with my three other on-going research projects, I am really feeling the pressure to meet expectations in various areas while also not falling behind in school works.</p>
+<p><strong>3. What will you do next week?</strong></p>
+<p>Next week, I am hoping that my team can get a headstart on phase II, where we are to integrate our existing frontend with a newly constructed backend that adheres to our custom RESTful API. I have some idea about what API calls our frontend will need to make, but I have no idea how to implement a SQL database that will maintain the data necessary pulled from other external APIs.</p>
+<p><strong>4. If you read it, what did you think of the Open-Closed Principle?</strong></p>
+<p>The Open-Closed Principle article was another excellent read that explained the core of Object Oriented Design: the Open-Closed Principle. This principle states that any software entity (ie. classes, modules, functions) should be open for extension, but closed for modification. In other words, these objects can be expanded in response to demonstrate new behavior, but should not change drastically in response to requirement changes. I find many connections from the concepts explained in this paper to the world of Physics, for example how in both worlds no system (software entities in OOP, a portion of the universe in Physics) is completely closed. As an extension, the only way to ensure that they will be closed is through the usage of abstraction (ie. interfaces in OOP, general relativity in Physics).</p>
+<p><strong>5. What was your experience of iterators and reduce2?</strong></p>
+<p>Every programmer, either explicitly or implicitly, has used iterators before. They are ubiquitous to the point of essential, where certain tasks seem impossible without the implementation of iterators (ie. multiple clients iterating through a shared container at their own respective pace). I am no exception to this statement, where I have used iterators mostly implicitly through the syntactic sugar for for each loop (or for in loops in JS). Reduce2, on the other hand, I am less familiar with. It’s not often the case where I would want to perform computation on a container to obtain one final result, but I can certainly see how reduce2 will greatly improve code readability and reduce the clutter introduced otherwise by a loop.</p>
+<p><strong>6. What made you happy this week?</strong></p>
+<p>My exam for Introduction to Anthropology was surprisingly easy and I am really glad they didn’t ask questions on obscure topics not mentioned in class.</p>
+<p><strong>7. What’s your pick-of-the-week or tip-of-the-week?</strong></p>
+<p>My tip-of-the-week would be the command <code>git stash</code>. When working with a team (such as this SWE project), it’s often the case that you need to pull the changes made by other members before committing yours to the repository. This is where <code>git stash</code> comes into play; it allows the programmer to ‘stash’ changes in the current working directory that can be later ‘popped’ via <code>git stash pop</code>. By doing so, it prevents <code>git pull</code> from overriding local changes.</p>
+
+            
+
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>
