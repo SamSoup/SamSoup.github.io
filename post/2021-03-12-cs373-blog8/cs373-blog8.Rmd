@@ -1,5 +1,5 @@
 ---
-title: cs373-blog8
+title: "CS373 Spring 2021: Week of 8 Mar - 14 Mar"
 author: Yiheng su
 date: '2021-03-12'
 slug: cs373-blog8
