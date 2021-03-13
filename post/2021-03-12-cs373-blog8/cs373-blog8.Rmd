@@ -1,0 +1,42 @@
+---
+title: cs373-blog8
+author: Yiheng su
+date: '2021-03-12'
+slug: cs373-blog8
+# categories: []
+# tags: []
+# description: ''
+hiderelated: true
+---
+
+![](/img/Headshot_cropped.jpg){width=80% height=400px}
+
+**1. What did you do this past week?**
+
+This past week, in addition to attending lectures, I met with my team to get a head start on phase II of the project. Currently, we have a MySQL database created and hosted on AWS RDS, whereby the tables (and schemas) in that database are dynamically created via code in SQLAlchemy. The learning curve was definitely smaller compared to learning React and JSX from scratch, but again Structured Query language is an entirely different beast on its own.
+
+**2. What's in your way?**
+
+Nothing much. Next week is the long awaited spring break, in which I definitely look forward to taking some time off from school entirely and spending some quality time catching up with my family and friends. However, I am somewhat behind in some of my classes, so inevitably I would need to spend some time off my break to play catch up and play all the required software tools in SWE.
+
+**3. What will you do next week?**
+
+I plan to spend the first half of next week as 'me time' and just completely put school behind my mind. However, starting Friday or so, I will spend at least a day learning about the required software testing tools used in phase II, namely Postman for API testing, Mocha for JavaScript unit testing, unittest for Python unit testing, and Selenium for overall website GUI testing. I haven't used any of the aforementioned software before unittest, so I imagine there's gonna be blood sweat and tears in learning them from scratch as well.
+
+**4. If you read it, what did you think of the Liskov Substitution Principle?**
+
+The Liskov Substitution Principle article was written by the same author as the article on the Open-Closed Principle, so as well it was an excellent read. The article was slightly longer this time, and serves as an extension in the application of the Open-Closed Principle. The Liskov Substitution Principle states that, functions or modules that use references to base classes must be able to use objects of the derived class without knowing so. In that sense, the Open-Closed Principle and the Liskov Substitution Principle is loosely coupled in that, typically code will violate them both or conform to them both.
+
+**5. What was your experience of iteration, comprehensions, generators, and digits iterator?**
+
+I have used all of these extensively, besides the digit iterator introduced today in class. Iterations is a common scheme employed by all programmers using data structures, while comprehensions and generators are famous features in Python that I have used in implementing a Markov Chain in Python before (a final project for CS109).
+
+**6. What made you happy this week?**
+
+Spring Breakkkkkk!
+
+**7. What's your pick-of-the-week or tip-of-the-week?**
+
+My tip-of-the-week is to make some time for your family during break. Everybody has a limited time and we should cherish what we can. 
+
+
