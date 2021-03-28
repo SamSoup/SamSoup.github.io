@@ -6,7 +6,17 @@
     <description>Recent content on Sam Su</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Fri, 12 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 27 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CS373 Spring 2021: Week of 11 Mar - 28 Mar</title>
+      <link>/post/2021/03/27/cs373-blog9/</link>
+      <pubDate>Sat, 27 Mar 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/post/2021/03/27/cs373-blog9/</guid>
+      <description>1. What did you do this past week?
+This past week, me and my group have been working hard to attempt to finish up phase II of the project, namely implementing by the backend RESTful API, pulling data from a deployed MySQL database in AWS, and then finally consuming that API in the frontend in an attempt to display the data nicely in a paged format. We had finished almost all of the backend requirements, but we are still somewhat stuck on pagination as well as unit testing around the board.</description>
+    </item>
+    
     <item>
       <title>CS373 Spring 2021: Week of 8 Mar - 14 Mar</title>
       <link>/post/2021/03/12/cs373-blog8/</link>

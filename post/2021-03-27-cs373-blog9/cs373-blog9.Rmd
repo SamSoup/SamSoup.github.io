@@ -1,0 +1,40 @@
+---
+title: "CS373 Spring 2021: Week of 11 Mar - 28 Mar"
+author: Yiheng Su
+date: '2021-03-27'
+slug: cs373-blog9
+# categories: []
+# tags: []
+# description: ''
+hiderelated: true
+---
+
+![](/img/Headshot_cropped.jpg){width=80% height=400px}
+
+**1. What did you do this past week?**
+
+This past week, me and my group have been working hard to attempt to finish up phase II of the project, namely implementing by the backend RESTful API, pulling data from a deployed MySQL database in AWS, and then finally consuming that API in the frontend in an attempt to display the data nicely in a paged format. We had finished almost all of the backend requirements, but we are still somewhat stuck on pagination as well as unit testing around the board. 
+
+**2. What's in your way?**
+
+Currently, I am struggling to figure out how to perform unit testing for our backend. I have successfully figured out how to run Postman API tests and integrate that into the GitLab continuous integration method (by simply exporting the Postman Collection as a JSON and using `newman` to run those exported tests). However, for the backend unit tests, we are supposed to construct a local MySQL database and deploy a flask app locally, consuming that database and providing callable endpoints to the client. I have a lot of trouble in trying to configure a MySQL database from scratch in the GitLab pipeline, and for whatever reason, even if the flask app is running, any requests to the supposed endpoints provided by that app fails to connect.
+
+**3. What will you do next week?**
+
+Next week I will probably try to finish what we can by Monday, when phase II is due. Then, I would probably take a break from the project and focus on some other classwork that I postponed in order to work on the SWE project. However, I will make sure to keep up with class material and I look forward to learning SQL after we finish Python.
+
+**4. If you read it, what did you think of the Interface Segregation Principle?**
+
+Yet another excellent read. The interface segregation principle states that 'polluted' interfaces encompassing multiple non-cohesive functionalities should be segregated into abstract sub-classes either via delegation (to some delegator class/object) or multiple inheritance.
+
+**5. What was your experience of comprehensions, yield, closures, and decorators? (this question will vary, week to week)**
+
+Comprehensions are a handy mechanism that are somewhat exclusive to Python, since I have not seen similar structures or syntax in C++ or Java. Nevertheless, I frequently use list comprehensions since it condenses code while also not losing readability. Yields, closures, and decorators are the other hand I am less familiar with. I have only used yields when dealing with large file I/O or infinite streams, while I have almost never used closures. Recently because of the routing development in the backend, I am becoming more familiar with the idea of decorators.
+
+**6. What made you happy this week?**
+
+I received a 100 on my data visualization project in SDS375 :).
+
+**7. What's your pick-of-the-week or tip-of-the-week?**
+
+My tip-of-the-week is to run your code often during development. Specifically, when writing a large and often complex program, it doesn't hurt to just run the incomplete code as it is and see if you get the expected output. Another way of saying the same thing is to test as you develop; once you run the incomplete code and confirm an expected behavior, translate that into an unit test that you can run repeatedly to ensure that the expected behavior remains invariant despite later development changes.
