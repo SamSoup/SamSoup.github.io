@@ -1,84 +1,52 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  
   <url>
     <loc>/post/2021/04/02/cs373-blog10/</loc>
     <lastmod>2021-04-02T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>/post/</loc>
     <lastmod>2021-04-02T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>/</loc>
     <lastmod>2021-04-02T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>/post/2021/03/27/cs373-blog9/</loc>
     <lastmod>2021-03-27T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>/post/2021/03/12/cs373-blog8/</loc>
     <lastmod>2021-03-12T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>/post/2021/03/07/cs373-blog7/</loc>
     <lastmod>2021-03-07T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>/post/2021/02/28/cs373-spring-2021-yiheng-su/</loc>
     <lastmod>2021-02-28T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>/post/2021/02/05/cs373-blog3/</loc>
     <lastmod>2021-02-05T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>/post/2021/01/30/cs373-blog2/</loc>
     <lastmod>2021-01-30T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>/post/2021/01/23/cs373-spring-2021-yiheng-su/</loc>
     <lastmod>2021-01-23T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>/post/2020/12/03/reticulate-fun-with-python/</loc>
     <lastmod>2020-12-03T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>/categories/</loc>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>/project/project2/</loc>
-  </url>
-  
-  <url>
+  </url><url>
+    <loc>/project/project1/</loc>
+  </url><url>
     <loc>/project/</loc>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>/projects/</loc>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>/resume/</loc>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>/tags/</loc>
   </url>
-  
 </urlset>
