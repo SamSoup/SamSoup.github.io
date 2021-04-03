@@ -29,7 +29,7 @@ After reading many articles by the same author, I in fact found this paper somew
 
 **5. What was your experience of +, *, ** and decorators? (this question will vary, week to week)**
 
-The `+` operator is quite common amongst languages, at least in the one I am familiar with (ie. Python, R, Java, C++). Hence, I have used it often, often with different intents (ie. integer addition, string concatenation). I am also experienced using `*` from the days of programming in C for CS349, Operating Systems, where it's often employed to resolve the content of pointers. I am less familiar with the use of `**`, where it's sometimes used to de-reference a point to a pointer. In my opinion, two lines each using `*` produces more readable code, but I can also see why using `**` is sometimes more beneficial if the original pointer is no longer needed.
+The `+` operator is quite common amongst languages, at least in the one I am familiar with (ie. Python, R, Java, C++). Hence, I have used it often, often with different intents (ie. integer addition, string concatenation). I am also experienced using `*` from the days of programming in C for CS349, Operating Systems, where it's often employed to resolve the content of pointers. I am less familiar with the use of `**`, where it's sometimes used to de-reference a point to a pointer. In my opinion, two lines each using `*` produces more readable code, but I can also see why using `**` is sometimes more beneficial if the original pointer is no longer needed. I am relatively new to decorators, and have not used the concept before. However, I have begun to warm up to them when coding the various routes in our backend Flask application.
 
 **6. What made you happy this week?**
 

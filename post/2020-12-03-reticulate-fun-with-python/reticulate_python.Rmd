@@ -98,4 +98,4 @@ In conclusion, Python may have the edge in machine learning tools and applicatio
 
 Thanks for sticking with me! Here's a meme for all the PCA lovers out there...
 
-![](PCA_meme.jpg){width=80% height=400px}
+![](/img/PCA_meme.jpg){width=80% height=400px}
