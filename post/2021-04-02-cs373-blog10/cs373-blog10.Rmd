@@ -9,7 +9,7 @@ slug: cs373-blog10
 hiderelated: true
 ---
 
-![](/img/Headshot_cropped.jpg){width=80% height=400px}
+![](Headshot_cropped.jpg){width=80% height=400px}
 
 **1. What did you do this past week?**
 

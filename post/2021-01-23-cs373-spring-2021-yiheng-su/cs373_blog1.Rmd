@@ -9,7 +9,7 @@ slug: cs373-spring-2021-yiheng-su
 hiderelated: true
 ---
 
-![](/img/Headshot_cropped.jpg){width=80% height=400px}
+![](Headshot_cropped.jpg){width=80% height=400px}
 
 **1. Where did you grow up?**
 
