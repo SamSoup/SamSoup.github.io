@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Sam Su" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>CS373 Spring 2021: Week of 29 Mar - 4 Apr</title>
+    <meta name="generator" content="Hugo 0.79.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/post/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+        <li><a href="/resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="/post/2021/04/02/cs373-blog10/">CS373 Spring 2021: Week of 29 Mar - 4 Apr</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         April 2, 2021 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<p><img src="/img/Headshot_cropped.jpg" style="width:80.0%" height="400" /></p>
+<p><strong>1. What did you do this past week?</strong></p>
+<p>This past week, me and my team took a break from working on phase III of the project after a stressful finish of phase II. In fact, we wasn’t able to even complete all of the requirements of phase II, which meant that those unfinished features (ie. pagination), must be complete now in phase III. I have attended lectures every Monday, Wednesday, and Friday as usual, and it seems that we are almost at the finish line of Python. Earlier today, we went over the basics of using regular expressions with Python syntax, using the <code>re</code> module.</p>
+<p><strong>2. What’s in your way?</strong></p>
+<p>I spent an abysmal amount of time figuring out the local DB construction for backend unit testing, so that’s at least finished. However, I am worried about finishing phase III in conjunction with the lingering issues from phase II. Namely, we still need to implement pagination, media instances for disasters and organizations, as well as frontend testing using Mocha or Selenium from frontend. On the bright side, the Postman API we set up already includes filtering and sorting using <code>Flask-Restless</code>, so that half the battle is already fought for phase III. Nevertheless, the front end has never been my strong suit, so I have been mainly working on the backend. Now, it seems inevitable that I would have to dive into the fray to help finish phase III.</p>
+<p><strong>3. What will you do next week?</strong></p>
+<p>Next week will be grind week, where I will try to finish phase III in conjunction with all my other work. I am also working on a poster for my research that I will be presenting in the Undergraduate Research Forum that’s related to programming, which is a great application of the skills I learned in this class.</p>
+<p><strong>4. If you read it, what did you think of the Dependency Inversion Principle?</strong></p>
+<p>After reading many articles by the same author, I in fact found this paper somewhat extraneous. I think that the existence of Dependency Inversion Principle is implied by the Liskov Substitution Principle and the Open-Closed Principle (and others), such that I cannot think of an example that satisfies the aforementioned principle but solely violates the Dependency Inversion Principle. Sure, it’s helpful to have a formalization sometimes, but I found the purpose/function of this principle to overlap with the many others we have already learned. Even the examples he provided sounded familiar, as they share many of the same concepts with examples introduced in the previously read papers.</p>
+<p>**5. What was your experience of +, *, <strong> and decorators? (this question will vary, week to week)</strong></p>
+<p>The <code>+</code> operator is quite common amongst languages, at least in the one I am familiar with (ie. Python, R, Java, C++). Hence, I have used it often, often with different intents (ie. integer addition, string concatenation). I am also experienced using <code>*</code> from the days of programming in C for CS349, Operating Systems, where it’s often employed to resolve the content of pointers. I am less familiar with the use of <code>**</code>, where it’s sometimes used to de-reference a point to a pointer. In my opinion, two lines each using <code>*</code> produces more readable code, but I can also see why using <code>**</code> is sometimes more beneficial if the original pointer is no longer needed.</p>
+<p><strong>6. What made you happy this week?</strong></p>
+<p>I am finally getting vaccinated next Saturday!</p>
+<p><strong>7. What’s your pick-of-the-week or tip-of-the-week?</strong></p>
+<p>My pick-of-the-week is the software <code>Anaconda</code>. Oftentimes during software development, there are specific requirements that differ across projects. These dependencies may even be outdated versions compared to the currently installed packages locally, so that it’s a pain to deal with. Out comes virtual environments to the rescue, and there exist many awesome tools for creating a virtual environment such as <code>venv</code> in Python or using Docker images. Anaconda, however, is for managing and maintaining virtual environments that persists and thus can be reused repeatedly. It also comes with a variety of data science editors such as Spider and Jupyter Notebooks, and hence should be an essential tool to anyone working with data.</p>
+
+            
+
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

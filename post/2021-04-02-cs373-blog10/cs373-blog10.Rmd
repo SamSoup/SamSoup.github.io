@@ -1,0 +1,41 @@
+---
+title: "CS373 Spring 2021: Week of 29 Mar - 4 Apr"
+author: Yiheng Su
+date: '2021-04-02'
+slug: cs373-blog10
+# categories: []
+# tags: []
+# description: ''
+hiderelated: true
+---
+
+![](/img/Headshot_cropped.jpg){width=80% height=400px}
+
+**1. What did you do this past week?**
+
+This past week, me and my team took a break from working on phase III of the project after a stressful finish of phase II. In fact, we wasn't able to even complete all of the requirements of phase II, which meant that those unfinished features (ie. pagination), must be complete now in phase III. I have attended lectures every Monday, Wednesday, and Friday as usual, and it seems that we are almost at the finish line of Python. Earlier today, we went over the basics of using regular expressions with Python syntax, using the `re` module. 
+
+**2. What's in your way?**
+
+I spent an abysmal amount of time figuring out the local DB construction for backend unit testing, so that's at least finished. However, I am worried about finishing phase III in conjunction with the lingering issues from phase II. Namely, we still need to implement pagination, media instances for disasters and organizations, as well as frontend testing using Mocha or Selenium from frontend. On the bright side, the Postman API we set up already includes filtering and sorting using `Flask-Restless`, so that half the battle is already fought for phase III. Nevertheless, the front end has never been my strong suit, so I have been mainly working on the backend. Now, it seems inevitable that I would have to dive into the fray to help finish phase III.
+
+**3. What will you do next week?**
+
+Next week will be grind week, where I will try to finish phase III in conjunction with all my other work. I am also working on a poster for my research that I will be presenting in the Undergraduate Research Forum that's related to programming, which is a great application of the skills I learned in this class.
+
+**4. If you read it, what did you think of the Dependency Inversion Principle?**
+
+After reading many articles by the same author, I in fact found this paper somewhat extraneous. I think that the existence of Dependency Inversion Principle is implied by the Liskov Substitution Principle and the Open-Closed Principle (and others), such that I cannot think of an example that satisfies the aforementioned principle but solely violates the Dependency Inversion Principle. Sure, it's helpful to have a formalization sometimes, but I found the purpose/function of this principle to overlap with the many others we have already learned. Even the examples he provided sounded familiar, as they share many of the same concepts with examples introduced in the previously read papers.
+
+**5. What was your experience of +, *, ** and decorators? (this question will vary, week to week)**
+
+The `+` operator is quite common amongst languages, at least in the one I am familiar with (ie. Python, R, Java, C++). Hence, I have used it often, often with different intents (ie. integer addition, string concatenation). I am also experienced using `*` from the days of programming in C for CS349, Operating Systems, where it's often employed to resolve the content of pointers. I am less familiar with the use of `**`, where it's sometimes used to de-reference a point to a pointer. In my opinion, two lines each using `*` produces more readable code, but I can also see why using `**` is sometimes more beneficial if the original pointer is no longer needed.
+
+**6. What made you happy this week?**
+
+I am finally getting vaccinated next Saturday!
+
+**7. What's your pick-of-the-week or tip-of-the-week?**
+
+My pick-of-the-week is the software `Anaconda`. Oftentimes during software development, there are specific requirements that differ across projects. These dependencies may even be outdated versions compared to the currently installed packages locally, so that it's a pain to deal with. Out comes virtual environments to the rescue, and there exist many awesome tools for creating a virtual environment such as `venv` in Python or using Docker images. Anaconda, however, is for managing and maintaining virtual environments that persists and thus can be reused repeatedly. It also comes with a variety of data science editors such as Spider and Jupyter Notebooks, and hence should be an essential tool to anyone working with data.
+
