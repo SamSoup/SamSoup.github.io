@@ -1,0 +1,48 @@
+---
+title: 'CS373 Spring 2021: Final Entry'
+author: Yiheng Su
+date: '2021-05-08'
+slug: cs373-spring-2021-final-entry
+# categories: []
+# tags: []
+# description: ''
+hiderelated: true
+---
+
+![](/img/Headshot_cropped.jpg){width=80% height=400px}
+
+**1. How well do you think the course conveyed those takeaways?**
+ 
+The course was effective in leaving useful takeaways for future software engineering. First, the significance of testing at all stages of development was constantly emphasized throughout the course. Second, the design notion of a minimalist algorithm but the capable container interfaces; specifically, we want functionalities to be verbose and accepting of a wide range of data structures (ie. does not necessarily have to be indexable) inputs, but then service the user with the most capable container within reason. Through this course, I learned decorators in Python, a nifty mechanism for wrapping around code that can be applied in debugging or re-utilization. What's more, the course introduced `yield`, which alludes to the larger concept of lazy evaluation where we delay the execution of code until necessary (by other parts). If anything, the course and its infamous project (besides an introductory project on Collatz, the class is oriented around one project: building a personal website) taught me the beauty and importance of collaboration and teamwork. Near the end of the semester, Dr. Downing presented a convincing argument for the need of refactoring, the notion of rearranging internal code structures in order to improve design or readability.
+ 
+**2. Were there any other particular takeaways for you?**
+ 
+Another special, more subtle, takeaway from this course is the essence of time management. Even though the project milestones were separated by at least two weeks, I found that the earlier we started, the more likely the team programming experience is better for every member where we can typically finish a couple of days ahead of schedule. However, in phases where we procrastinated, we often ran into last minute issues that prevented full implementation. 
+ 
+**3. How did you feel about cold calling?**
+ 
+I felt cold calling was an effective strategy that not only ensured a baseline level of classroom participation but also gave a sense of connectivity and community that gave everyone a chance to speak at least once during sessions.
+ 
+**4. How did you feel about office hours?**
+ 
+There's a reason why almost every class offered at the University of Texas hosts some kind of office hour, and CS 373 is no exception. It's a great opportunity to chat with Dr. Downing about class material, project critiques, or anything in general!
+ 
+**5. How did you feel about lab sessions?**
+ 
+While office hours were more for interactions with the professor, lab sessions were tailored for technical help on website building where experienced teaching assistants (all have taken the courses before) can assist to debug using software tools, give clarifications, or offer general advice.
+ 
+**6. What required tool did you not know and now find very useful?**
+ 
+Quite frankly, I came in with minimal knowledge about any of the required tools, so I found all of the required tools quite useful! For back-end, `Flask` and `Flask Restless` definitely saved the day to deploy our web server/application that implemented a RESTful API interface. For front-end, the bulk of the styling and presentation uses `React` and `React-bootstrap`, which provides a dynamic user interface to the public. Although, if I were to pick one particular tool that I will most  likely use in the future, it would be `Postman` for making and testing API calls painlessly. 
+ 
+**7. What's the most useful Web dev tool that your group used that was not required?**
+ 
+Because of everyone's course load, our team did not really use any web development tools outside of the requirements. However, I would like to mention `MySQL Workbench` as an useful application that was not explicitly listed. As its name suggests, the workbench seeks to facilitate working with MySQL databases and provides a graphical interface to its users for quick interactions. Specifically, you can connect to any MySQL database, and the tool would show you the current tables and entries, so that you can perform any valid SQL queries as necessary (both by clicking on buttons or actually writing SQL). One subtle area the application really helped was automatic construction of an Entity Relationship (ER) Diagram, whereby the application reverse engineers the original schema that defines the overall database.
+ 
+**8. How did you feel about your group having to self-teach many, many technologies?**
+ 
+It was definitely hard to adapt to at the beginning, since most college CS assignments are implementations of materials in lectures. However, as the class and the project progressed, I slowly adapted to the situation and eventually found strategies and facilitated self-learning. In particular, I found that cross-referencing with other groups' repositories was very helpful, since everybody is implementing the same set of features until customization near the end. 
+ 
+**9. Suggestions for improving the course.**
+ 
+I really loved that there were no exams this semester; it definitely alleviated stress and allowed me to focus on completing the project instead. However, when I took Dr. Downing's OOP, the quizzes were two phases, but they are no longer so this semester. I felt that the two phased quizzes were more helpful (hearing the material explained from a classmates' perspective) and would love to see it back for future courses.

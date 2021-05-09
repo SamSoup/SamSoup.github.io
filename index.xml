@@ -6,7 +6,17 @@
     <description>Recent content on Sam Su</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Fri, 02 Apr 2021 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 08 May 2021 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CS373 Spring 2021: Final Entry</title>
+      <link>/post/2021/05/08/cs373-spring-2021-final-entry/</link>
+      <pubDate>Sat, 08 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/post/2021/05/08/cs373-spring-2021-final-entry/</guid>
+      <description>1. How well do you think the course conveyed those takeaways?
+The course was effective in leaving useful takeaways for future software engineering. First, the significance of testing at all stages of development was constantly emphasized throughout the course. Second, the design notion of a minimalist algorithm but the capable container interfaces; specifically, we want functionalities to be verbose and accepting of a wide range of data structures (ie. does not necessarily have to be indexable) inputs, but then service the user with the most capable container within reason.</description>
+    </item>
+    
     <item>
       <title>CS373 Spring 2021: Week of 29 Mar - 4 Apr</title>
       <link>/post/2021/04/02/cs373-blog10/</link>
